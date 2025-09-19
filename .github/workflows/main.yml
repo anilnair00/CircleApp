@@ -52,37 +52,37 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
           
-    - name: Deploy locally
+    # - name: Deploy locally
+      # shell: powershell
+      # run: |
+      #   Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
+      #   # Restart-WebAppPool -Name "DefaultAppPool"
+      #   $appPool = "DefaultAppPool"
+    
+      #   # Check current state
+      #   $state = (Get-WebAppPoolState -Name $appPool).Value
+    
+      #   if ($state -eq "Stopped") {
+      #       Write-Host "App Pool is stopped. Starting..."
+      #       Start-WebAppPool -Name $appPool
+      #   } else {
+      #       Write-Host "App Pool is running. Restarting..."
+      #       Restart-WebAppPool -Name $appPool
+      #   }      
+    - name: Deploy to IIS
       shell: powershell
       run: |
-        Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
-        # Restart-WebAppPool -Name "DefaultAppPool"
-        $appPool = "DefaultAppPool"
+        $PackagePath = "$(Resolve-Path ./CircleAppPackage/CircleApp.zip)"
+        $Server      = "20.245.242.103"
+        $User        = "sam"
+        $Pass        = "p@ssword@123"
+        $Site        = "Default Web Site/CircleApp"
+        $msdeploy    = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
     
-        # Check current state
-        $state = (Get-WebAppPoolState -Name $appPool).Value
-    
-        if ($state -eq "Stopped") {
-            Write-Host "App Pool is stopped. Starting..."
-            Start-WebAppPool -Name $appPool
-        } else {
-            Write-Host "App Pool is running. Restarting..."
-            Restart-WebAppPool -Name $appPool
-        }      
-    # - name: Deploy to IIS
-    #   shell: pwsh
-    #   run: |
-    #     $PackagePath = "$(Resolve-Path ./CircleAppPackage/CircleApp.zip)"
-    #     $Server      = "20.245.242.103"
-    #     $User        = "sam"
-    #     $Pass        = "p@ssword@123"
-    #     $Site        = "Default Web Site/CircleApp"
-    #     $msdeploy    = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-    
-    #     & "$msdeploy" -verb:sync `
-    #       -source:package="$PackagePath" `
-    #       -dest:iisApp="$Site",computerName="https://$Server:8172/msdeploy.axd",userName="$User",password="$Pass",authType="Basic" `
-    #       -allowUntrusted -enableRule:DoNotDeleteRule
+        & "$msdeploy" -verb:sync `
+          -source:package="$PackagePath" `
+          -dest:iisApp="$Site",computerName="https://$Server:8172/msdeploy.axd",userName="$User",password="$Pass",authType="Basic" `
+          -allowUntrusted -enableRule:DoNotDeleteRule
 
     # - name: Deploy to IIS with MSDeploy
     #   shell: powershell
