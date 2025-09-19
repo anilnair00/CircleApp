@@ -57,7 +57,7 @@ jobs:
       run: |
           $PackagePath  = "$(Resolve-Path ./CircleAppPackage/CircleApp.zip)"
           $SiteName     = "Default Web Site"
-          $AppName      = "CircleApp"
+          $AppName      = "MercuryHealth"
           $Server       = "20.245.242.103"    # e.g. 20.245.242.103
           $Username     = "sam"  # deployment user
           $Password     = "p@ssword@123"  # deployment password
