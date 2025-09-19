@@ -74,7 +74,7 @@ stages:
         & $msdeploy `
           -verb:sync `
           -source:package="$package" `
-          -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="DeployUser",password="P@ssword@123",authType="Basic" `
+          -dest:auto,computerName="https://172.29.160.1:8172/msdeploy.axd?site=CircleApp",userName="DeployUser",password="P@ssword@123",authType="Basic" `
           -allowUntrusted
       displayName: "Run MSDeploy"
       # env:
