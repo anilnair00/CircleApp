@@ -51,6 +51,13 @@ jobs:
       with:
           name: CircleAppPackage
           path: CircleAppPackage
+          
+    - name: Deploy locally
+      shell: powershell
+      run: |
+        Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
+        Restart-WebAppPool -Name "DefaultAppPool"
+
 
     # - name: Deploy to IIS with MSDeploy
     #   shell: powershell
@@ -72,54 +79,54 @@ jobs:
     #         -dest:iisApp="$SiteName/$AppName",computerName="https://$Server:8172/msdeploy.axd",userName="$Username",password="$Password",authType="Basic" `
     #         -allowUntrusted -enableRule:DoNotDeleteRule
 ###############################################################################################
-    - name: Deploy to IIS with msdeploy
-      shell: powershell
-      run: |
-          # Stop on any error
-          $ErrorActionPreference = "Stop"
+    # - name: Deploy to IIS with msdeploy
+    #   shell: powershell
+    #   run: |
+    #       # Stop on any error
+    #       $ErrorActionPreference = "Stop"
           
-          # ---------------- Configuration ----------------
-          $SiteName     = "Default Web Site"
-          $AppPool      = "DefaultAppPool"
-          $PhysicalPath = "C:\inetpub\wwwroot\CircleApp"
-          $PackagePath  = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
-          $Server       = "20.245.242.103"
-          $Username     = "sam"
-          $Password     = "p@ssword@123"
-          $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+    #       # ---------------- Configuration ----------------
+    #       $SiteName     = "Default Web Site"
+    #       $AppPool      = "DefaultAppPool"
+    #       $PhysicalPath = "C:\inetpub\wwwroot\CircleApp"
+    #       $PackagePath  = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
+    #       $Server       = "20.245.242.103"
+    #       $Username     = "sam"
+    #       $Password     = "p@ssword@123"
+    #       $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
           
-          Import-Module WebAdministration
+    #       Import-Module WebAdministration
           
-          # ---------------- Check if site exists ----------------
-          $site = Get-Website | Where-Object { $_.Name -eq $SiteName }
+    #       # ---------------- Check if site exists ----------------
+    #       $site = Get-Website | Where-Object { $_.Name -eq $SiteName }
           
-          if (-not $site) {
-              Write-Host "Site '$SiteName' does not exist. Creating new site..."
+    #       if (-not $site) {
+    #           Write-Host "Site '$SiteName' does not exist. Creating new site..."
           
-              # Create app pool if it doesn't exist
-              if (-not (Get-WebAppPoolState -Name $AppPool -ErrorAction SilentlyContinue)) {
-                  New-WebAppPool -Name $AppPool
-                  Write-Host "App Pool '$AppPool' created."
-              }
+    #           # Create app pool if it doesn't exist
+    #           if (-not (Get-WebAppPoolState -Name $AppPool -ErrorAction SilentlyContinue)) {
+    #               New-WebAppPool -Name $AppPool
+    #               Write-Host "App Pool '$AppPool' created."
+    #           }
           
-              # Create the site
-              if (-not (Test-Path $PhysicalPath)) {
-                  New-Item -ItemType Directory -Path $PhysicalPath -Force
-              }
+    #           # Create the site
+    #           if (-not (Test-Path $PhysicalPath)) {
+    #               New-Item -ItemType Directory -Path $PhysicalPath -Force
+    #           }
           
-              New-Website -Name $SiteName -Port 80 -PhysicalPath $PhysicalPath -ApplicationPool $AppPool
-              Write-Host "Site '$SiteName' created."
-          } else {
-              Write-Host "Site '$SiteName' exists. Updating content..."
-          }
+    #           New-Website -Name $SiteName -Port 80 -PhysicalPath $PhysicalPath -ApplicationPool $AppPool
+    #           Write-Host "Site '$SiteName' created."
+    #       } else {
+    #           Write-Host "Site '$SiteName' exists. Updating content..."
+    #       }
           
-          # ---------------- Ensure physical path exists ----------------
-          if (-not (Test-Path $PhysicalPath)) {
-              New-Item -ItemType Directory -Path $PhysicalPath -Force
-          }
+    #       # ---------------- Ensure physical path exists ----------------
+    #       if (-not (Test-Path $PhysicalPath)) {
+    #           New-Item -ItemType Directory -Path $PhysicalPath -Force
+    #       }
           
-          # ---------------- Debug Info ----------------
-          $Comp
+    #       # ---------------- Debug Info ----------------
+    #       $Comp
 
     
       #     publish-profile: ${{ secrets.API_PUBLISH_SECRET }}
