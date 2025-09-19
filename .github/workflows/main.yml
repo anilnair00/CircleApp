@@ -56,7 +56,7 @@ jobs:
       shell: powershell
       run: |
         Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
-        Restart-WebAppPool -Name "DefaultAppPool"
+        # Restart-WebAppPool -Name "DefaultAppPool"
 
 
     # - name: Deploy to IIS with MSDeploy
