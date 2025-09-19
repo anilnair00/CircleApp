@@ -81,7 +81,7 @@ jobs:
           # ---------------- Configuration ----------------
           $SiteName     = "Default Web Site"
           $AppPool      = "DefaultAppPool"
-          $PhysicalPath = "C:\inetpub\wwwroot\CircleApp\*"
+          $PhysicalPath = "C:\inetpub\wwwroot\CircleApp"
           $PackagePath  = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
           $Server       = "20.245.242.103"
           $Username     = "sam"
