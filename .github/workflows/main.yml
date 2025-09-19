@@ -52,20 +52,11 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Deploy using MSDeploy
-      run: |
-            $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-            & $msdeploy `
-            -verb:sync `
-            "-source:package=CircleAppPackage/CircleApp.zip" `
-            "-dest:auto,computerName=https://${{ secrets.IIS_HOST }}:8172/msdeploy.axd?site=MunsonPickles.Api,userName=${{ secrets.IIS_USER }},password=${{ secrets.IIS_PASS }},authType=Basic" `
-            -allowUntrusted
-
     - name: Run MSDeploy
       shell: pwsh
       run: |
           $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          $package = "$(Get-Location)\CircleAppPackage\CircleAppPackage.zip"
+          $package = "$(Get-Location)\CircleAppPackage\CircleApp.zip"
 
           & $msdeploy `
             -verb:sync `
