@@ -52,55 +52,63 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
+
+###############################################################################################
     - name: Deploy to IIS with msdeploy
       shell: powershell
       run: |
-          # Stop on any error
-          $ErrorActionPreference = "Stop"
-          
-          # Configuration
-          $SiteName = "Default Web Site"
-          $AppPool = "DefaultAppPool"
-          $PhysicalPath = "C:\inetpub\wwwroot"
-          $PackagePath = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
-          $Server = "20.245.242.103"
-          $Username = "deployuser"
-          $Password = "YourPassword"
-          
-          Import-Module WebAdministration
-          
-          # Check if site exists
-          $site = Get-Website | Where-Object { $_.Name -eq $SiteName }
-          
-          if (-not $site) {
-              Write-Host "Site '$SiteName' does not exist. Creating new site..."
-          
-              # Create app pool if not exists
-              if (-not (Get-WebAppPoolState -Name $AppPool -ErrorAction SilentlyContinue)) {
-                  New-WebAppPool -Name $AppPool
-              }
-          
-              # Create site
-              New-Website -Name $SiteName -Port 80 -PhysicalPath $PhysicalPath -ApplicationPool $AppPool
-          } else {
-              Write-Host "Site '$SiteName' exists. Updating content..."
-          }
-          
-          # Ensure the physical path exists
-          if (-not (Test-Path $PhysicalPath)) {
-              New-Item -ItemType Directory -Path $PhysicalPath
-          }
-          
-          # Deploy using MSDeploy (wmsvc)
-          $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          & $msdeployPath `
-              -verb:sync `
-              -source:package="$PackagePath" `
-              -dest:iisApp="$SiteName",wmsvc="$Server",userName="$Username",password="$Password",authType="Basic",allowUntrusted=True `
-              -enableRule:DoNotDeleteRule
-          
-          Write-Host "Deployment complete!"
-
+        # Stop on any error
+        $ErrorActionPreference = "Stop"
+        
+        # ---------------- Configuration ----------------
+        $SiteName     = "Default Web Site"
+        $AppPool      = "DefaultAppPool"
+        $PhysicalPath = "C:\inetpub\wwwroot"
+        $PackagePath  = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
+        $Server       = "20.245.242.103"
+        $Username     = "sam"
+        $Password     = "p@ssword@123"
+        $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        
+        Import-Module WebAdministration
+        
+        # ---------------- Check if site exists ----------------
+        $site = Get-Website | Where-Object { $_.Name -eq $SiteName }
+        
+        if (-not $site) {
+            Write-Host "Site '$SiteName' does not exist. Creating new site..."
+        
+            # Create app pool if it doesn't exist
+            if (-not (Get-WebAppPoolState -Name $AppPool -ErrorAction SilentlyContinue)) {
+                New-WebAppPool -Name $AppPool
+                Write-Host "App Pool '$AppPool' created."
+            }
+        
+            # Create the site
+            if (-not (Test-Path $PhysicalPath)) {
+                New-Item -ItemType Directory -Path $PhysicalPath -Force
+            }
+        
+            New-Website -Name $SiteName -Port 80 -PhysicalPath $PhysicalPath -ApplicationPool $AppPool
+            Write-Host "Site '$SiteName' created."
+        } else {
+            Write-Host "Site '$SiteName' exists. Updating content..."
+        }
+        
+        # ---------------- Ensure physical path exists ----------------
+        if (-not (Test-Path $PhysicalPath)) {
+            New-Item -ItemType Directory -Path $PhysicalPath -Force
+        }
+        
+        # ---------------- Deploy using MSDeploy (contentPath) ----------------
+        & "$msdeployPath" `
+            -verb:sync `
+            -source:package="$PackagePath" `
+            -dest:contentPath="$PhysicalPath",wmsvc="$Server",userName="$Username",password="$Password",authType="Basic",allowUntrusted=True `
+            -enableRule:DoNotDeleteRule
+        
+        Write-Host "Deployment complete!"
+      
         
     # - name: Run MSDeploy
     #   shell: powershell
