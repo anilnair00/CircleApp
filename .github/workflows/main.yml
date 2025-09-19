@@ -57,11 +57,11 @@ jobs:
       run: |
         # Example PowerShell commands for deployment
         Import-Module WebAdministration
-        Stop-WebAppPool -Name "DefaultAppPool"
+        Stop-WebAppPool -Name "DefaultAppPool" -ErrorAction SilentlyContinue
         Remove-Item -Path "C:\inetpub\wwwroot\*" -Recurse -Force
         Copy-Item -Path "CircleAppPackage\CircleApp.zip" -Destination "C:\inetpub\wwwroot\" -Recurse
         Start-WebAppPool -Name "DefaultAppPool"
-    
+
 ###############################################################################################
     # - name: Deploy to IIS with msdeploy
     #   shell: powershell
