@@ -59,7 +59,7 @@ jobs:
         Import-Module WebAdministration
         Stop-WebAppPool -Name "DefaultAppPool"
         Remove-Item -Path "C:\inetpub\wwwroot\*" -Recurse -Force
-        Copy-Item -Path "CircleAppPackage\CircleAppPackage.zip" -Destination "C:\inetpub\wwwroot\" -Recurse
+        Copy-Item -Path "CircleAppPackage\CircleApp.zip" -Destination "C:\inetpub\wwwroot\" -Recurse
         Start-WebAppPool -Name "DefaultAppPool"
     
 ###############################################################################################
