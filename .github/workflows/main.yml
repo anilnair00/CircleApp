@@ -101,15 +101,13 @@ jobs:
         }
         
         # ---------------- Deploy using MSDeploy (contentPath) ----------------
-        & "$msdeployPath" `
-            -verb:sync `
+        & "$msdeployPath" -verb:sync `
             -source:package="$PackagePath" `
             -dest:contentPath="$PhysicalPath",computerName="https://$Server:8172/msdeploy.axd",userName="$Username",password="$Password",authType="Basic" `
-            -allowUntrusted `
-            -enableRule:DoNotDeleteRule
+            -allowUntrusted -enableRule:DoNotDeleteRule
         
         Write-Host "Deployment complete!"
-      
+    
         
     # - name: Run MSDeploy
     #   shell: powershell
