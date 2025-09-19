@@ -61,7 +61,7 @@ jobs:
           & $msdeploy `
             -verb:sync `
             -source:package="$package" `
-            -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="${{ secrets.IIS_USER }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
+            -dest:auto,computerName="https://10.0.0.4:8172/msdeploy.axd?site=CircleApp",userName="${{ secrets.IIS_USER }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
             -allowUntrusted
 
     # - name: Install Azure CLI
