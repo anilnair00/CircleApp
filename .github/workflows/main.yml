@@ -104,7 +104,8 @@ jobs:
         & "$msdeployPath" `
             -verb:sync `
             -source:package="$PackagePath" `
-            -dest:contentPath="$PhysicalPath",wmsvc="$Server",userName="$Username",password="$Password",authType="Basic",allowUntrusted=True `
+            -dest:contentPath="$PhysicalPath",computerName="https://$Server:8172/msdeploy.axd",userName="$Username",password="$Password",authType="Basic" `
+            l-allowUntrusted `
             -enableRule:DoNotDeleteRule
         
         Write-Host "Deployment complete!"
