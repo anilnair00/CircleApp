@@ -1,0 +1,86 @@
+# github action
+
+name: Deploy 
+
+on:
+  workflow_dispatch:
+
+env:
+  # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
+  ArtifactName: "TEST"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+        
+      - name: Restore dependencies
+        run: dotnet restore CircleApp.sln
+
+      - name: Build
+        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+        
+      - name: Publish project
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
+
+      - name: Create deployment zip
+        run: |
+          cd ./publish
+          zip -r ../CircleApp.zip .
+          cd ..
+  
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CircleAppPackage
+          path: CircleApp.zip
+
+  deployOnDev:
+    runs-on: dev
+    needs: build
+    # if: github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/*')
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleAppPackage
+          path: CircleAppPackage
+
+    - name: Deploy using MSDeploy
+      run: |
+            $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+            & $msdeploy `
+            -verb:sync `
+            "-source:package=MunsonPickles.Api/MunsonPickles.Api.zip" `
+            "-dest:auto,computerName=https://${{ secrets.IIS_HOST }}:8172/msdeploy.axd?site=MunsonPickles.Api,userName=${{ secrets.IIS_USER }},password=${{ secrets.IIS_PASS }},authType=Basic" `
+            -allowUntrusted
+
+    - name: Run MSDeploy
+      shell: pwsh
+      run: |
+          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          $package = "$(Get-Location)\CircleAppPackage\CircleAppPackage.zip"
+
+          & $msdeploy `
+            -verb:sync `
+            -source:package="$package" `
+            -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="${{ secrets.IIS_USER }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
+            -allowUntrusted
+
+    # - name: Install Azure CLI
+    #   run: |
+    #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash 
+        
+      # deploy to azure
+      # - name: Deploy to Azure Web App
+      #   uses: azure/webapps-deploy@v2
+      #   with:
+      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
+      #     publish-profile: ${{ secrets.API_PUBLISH_SECRET }}
+      #     package: ./publish
