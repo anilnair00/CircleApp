@@ -57,7 +57,7 @@ jobs:
             $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
             & $msdeploy `
             -verb:sync `
-            "-source:package=MunsonPickles.Api/MunsonPickles.Api.zip" `
+            "-source:package=CircleAppPackage/CircleApp.zip" `
             "-dest:auto,computerName=https://${{ secrets.IIS_HOST }}:8172/msdeploy.axd?site=MunsonPickles.Api,userName=${{ secrets.IIS_USER }},password=${{ secrets.IIS_PASS }},authType=Basic" `
             -allowUntrusted
 
