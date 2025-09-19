@@ -53,7 +53,7 @@ jobs:
           path: CircleAppPackage
 
     - name: Run MSDeploy
-      shell: pwsh
+      shell: powershell
       run: |
           $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
           $package = "$(Get-Location)\CircleAppPackage\CircleApp.zip"
