@@ -3,8 +3,6 @@ trigger:
     include:
       - master
 
-
-
 pool:
   vmImage: 'windows-latest'   # can also use ubuntu-latest if you don’t need msdeploy here
 
@@ -26,8 +24,7 @@ stages:
         packageType: 'sdk'
         version: '9.0.x'
 
-    - task: Checkout@1
-
+    # - task: Checkout@1
 
     - task: DotNetCoreCLI@2
       displayName: "Restore dependencies"
@@ -80,7 +77,7 @@ stages:
           -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="DeployUser",password="P@ssword@123",authType="Basic" `
           -allowUntrusted
       displayName: "Run MSDeploy"
-      env:
-        IIS_HOST: $(IIS_HOST)
-        IIS_USER: $(IIS_USER)
-        IIS_PASSWORD: $(IIS_PASSWORD)
+      # env:
+      #   IIS_HOST: $(IIS_HOST)
+      #   IIS_USER: $(IIS_USER)
+      #   IIS_PASSWORD: $(IIS_PASSWORD)
