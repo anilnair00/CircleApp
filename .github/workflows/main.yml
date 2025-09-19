@@ -52,79 +52,65 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-###############################################################################################
-    - name: Deploy to IIS with msdeploy
-      shell: powershell
-      run: |
-          # Stop on any error
-          $ErrorActionPreference = "Stop"
-          
-          # ---------------- Configuration ----------------
-          $SiteName     = "Default Web Site"
-          $AppPool      = "DefaultAppPool"
-          $PhysicalPath = "C:\inetpub\wwwroot"
-          $PackagePath  = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
-          $Server       = "20.245.242.103"
-          $Username     = "sam"
-          $Password     = "p@ssword@123"
-          $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          
-          Import-Module WebAdministration
-          
-          # ---------------- Check if site exists ----------------
-          $site = Get-Website | Where-Object { $_.Name -eq $SiteName }
-          
-          if (-not $site) {
-              Write-Host "Site '$SiteName' does not exist. Creating new site..."
-          
-              # Create app pool if it doesn't exist
-              if (-not (Get-WebAppPoolState -Name $AppPool -ErrorAction SilentlyContinue)) {
-                  New-WebAppPool -Name $AppPool
-                  Write-Host "App Pool '$AppPool' created."
-              }
-          
-              # Create the site
-              if (-not (Test-Path $PhysicalPath)) {
-                  New-Item -ItemType Directory -Path $PhysicalPath -Force
-              }
-          
-              New-Website -Name $SiteName -Port 80 -PhysicalPath $PhysicalPath -ApplicationPool $AppPool
-              Write-Host "Site '$SiteName' created."
-          } else {
-              Write-Host "Site '$SiteName' exists. Updating content..."
-          }
-          
-          # ---------------- Ensure physical path exists ----------------
-          if (-not (Test-Path $PhysicalPath)) {
-              New-Item -ItemType Directory -Path $PhysicalPath -Force
-          }
-          
-          # ---------------- Debug Info ----------------
-          $Comp
-
+    - uses: ChristopheLav/iis-deploy@v1
+      with:
+        website-name: 'Default Web Site'
+        msdeploy-service-url: https://20.245.242.103:8172/msdeploy.axd
+        msdeploy-username: DeployUser
+        msdeploy-password: P@ssword@123
+        source-path: CircleAppPackage\CircleApp.zip
+        skip-extra-files: false
     
-        
-    # - name: Run MSDeploy
+###############################################################################################
+    # - name: Deploy to IIS with msdeploy
     #   shell: powershell
     #   run: |
-    #       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-    #       $package = "$(Get-Location)\CircleAppPackage\CircleApp.zip"
+    #       # Stop on any error
+    #       $ErrorActionPreference = "Stop"
+          
+    #       # ---------------- Configuration ----------------
+    #       $SiteName     = "Default Web Site"
+    #       $AppPool      = "DefaultAppPool"
+    #       $PhysicalPath = "C:\inetpub\wwwroot"
+    #       $PackagePath  = "C:\Users\Sam\actions-runner\actions-runner\_work\CircleApp\CircleApp\CircleAppPackage\CircleApp.zip"
+    #       $Server       = "20.245.242.103"
+    #       $Username     = "sam"
+    #       $Password     = "p@ssword@123"
+    #       $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          
+    #       Import-Module WebAdministration
+          
+    #       # ---------------- Check if site exists ----------------
+    #       $site = Get-Website | Where-Object { $_.Name -eq $SiteName }
+          
+    #       if (-not $site) {
+    #           Write-Host "Site '$SiteName' does not exist. Creating new site..."
+          
+    #           # Create app pool if it doesn't exist
+    #           if (-not (Get-WebAppPoolState -Name $AppPool -ErrorAction SilentlyContinue)) {
+    #               New-WebAppPool -Name $AppPool
+    #               Write-Host "App Pool '$AppPool' created."
+    #           }
+          
+    #           # Create the site
+    #           if (-not (Test-Path $PhysicalPath)) {
+    #               New-Item -ItemType Directory -Path $PhysicalPath -Force
+    #           }
+          
+    #           New-Website -Name $SiteName -Port 80 -PhysicalPath $PhysicalPath -ApplicationPool $AppPool
+    #           Write-Host "Site '$SiteName' created."
+    #       } else {
+    #           Write-Host "Site '$SiteName' exists. Updating content..."
+    #       }
+          
+    #       # ---------------- Ensure physical path exists ----------------
+    #       if (-not (Test-Path $PhysicalPath)) {
+    #           New-Item -ItemType Directory -Path $PhysicalPath -Force
+    #       }
+          
+    #       # ---------------- Debug Info ----------------
+    #       $Comp
 
-    #       & $msdeploy `
-    #         -verb:sync `
-    #         -source:package="$package" `
-    #         -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="${{ secrets.IIS_USER }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
-    #         -allowUntrusted=True
-
-
-    # - name: Install Azure CLI
-    #   run: |
-    #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash 
-        
-      # deploy to azure
-      # - name: Deploy to Azure Web App
-      #   uses: azure/webapps-deploy@v2
-      #   with:
-      #     app-name: ${{ env.AZURE_WEBAPP_NAME }}
+    
       #     publish-profile: ${{ secrets.API_PUBLISH_SECRET }}
       #     package: ./publish
