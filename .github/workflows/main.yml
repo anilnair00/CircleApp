@@ -52,17 +52,31 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Run MSDeploy
+    - name: Deploy to IIS with msdeploy
       shell: powershell
       run: |
-          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          $package = "$(Get-Location)\CircleAppPackage\CircleApp.zip"
+        $ErrorActionPreference = "Stop"
+        $msdeployExe = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        $sourcePath = "CircleAppPackage\CircleApp.zip"
+        $dest = "contentPath='${{ env.WEBSITE_NAME }}'"
+        & "$msdeployExe" -verb:sync `
+          -source:contentPath="$sourcePath" `
+          -dest:$dest,computerName="sam",userName="DeployUser",password="P@ssword@123",authType="Basic" `
+          -enableRule:DoNotDeleteRule
+      env:
+        WEBSITE_NAME: 'Default Web Site'
+        
+    # - name: Run MSDeploy
+    #   shell: powershell
+    #   run: |
+    #       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+    #       $package = "$(Get-Location)\CircleAppPackage\CircleApp.zip"
 
-          & $msdeploy `
-            -verb:sync `
-            -source:package="$package" `
-            -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="${{ secrets.IIS_USER }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
-            -allowUntrusted=True
+    #       & $msdeploy `
+    #         -verb:sync `
+    #         -source:package="$package" `
+    #         -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="${{ secrets.IIS_USER }}",password="${{ secrets.IIS_PASSWORD }}",authType="Basic" `
+    #         -allowUntrusted=True
 
 
     # - name: Install Azure CLI
