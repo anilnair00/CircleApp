@@ -52,14 +52,15 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - uses: ChristopheLav/iis-deploy@v1
-      with:
-        website-name: 'Default Web Site'
-        msdeploy-service-url: https://20.245.242.103:8172/msdeploy.axd
-        msdeploy-username: DeployUser
-        msdeploy-password: P@ssword@123
-        source-path: CircleAppPackage\CircleApp.zip
-        skip-extra-files: false
+    - name: Deploy to IIS
+      shell: powershell
+      run: |
+        # Example PowerShell commands for deployment
+        Import-Module WebAdministration
+        Stop-WebAppPool -Name "DefaultAppPool"
+        Remove-Item -Path "C:\inetpub\wwwroot\*" -Recurse -Force
+        Copy-Item -Path "CircleAppPackage\CircleAppPackage.zip" -Destination "C:\inetpub\wwwroot\" -Recurse
+        Start-WebAppPool -Name "DefaultAppPool"
     
 ###############################################################################################
     # - name: Deploy to IIS with msdeploy
