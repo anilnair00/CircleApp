@@ -1,0 +1,86 @@
+trigger:
+  branches:
+    include:
+      - master
+
+
+
+pool:
+  vmImage: 'windows-latest'   # can also use ubuntu-latest if you don’t need msdeploy here
+
+variables:
+  buildConfiguration: 'Release'
+
+stages:
+- stage: Build
+  displayName: "Build and Package CircleApp"
+  jobs:
+  - job: BuildJob
+    displayName: "Restore, Build and Package"
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: UseDotNet@2
+      displayName: "Install .NET 9 SDK"
+      inputs:
+        packageType: 'sdk'
+        version: '9.0.x'
+
+    - task: Checkout@1
+
+
+    - task: DotNetCoreCLI@2
+      displayName: "Restore dependencies"
+      inputs:
+        command: 'restore'
+        projects: 'CircleApp.sln'
+
+    - task: DotNetCoreCLI@2
+      displayName: "Publish project"
+      inputs:
+        command: 'publish'
+        projects: 'CircleApp/CircleApp.csproj'
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+
+    - task: ArchiveFiles@2
+      displayName: "Create deployment zip"
+      inputs:
+        rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/CircleApp.zip'
+        replaceExistingArchive: true
+
+    - task: PublishBuildArtifacts@1
+      displayName: "Publish build artifact"
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/CircleApp.zip'
+        ArtifactName: 'CircleAppPackage'
+        publishLocation: 'Container'
+
+- stage: Deploy
+  displayName: "Deploy to IIS with MSDeploy"
+  dependsOn: Build
+  jobs:
+  - job: DeployJob
+    displayName: "MSDeploy to IIS"
+    pool:
+      vmImage: 'windows-latest'   # Required for msdeploy.exe
+    steps:
+    - download: current
+      artifact: CircleAppPackage
+
+    - powershell: |
+        $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        $package = "$(Pipeline.Workspace)\CircleAppPackage\CircleApp.zip"
+
+        & $msdeploy `
+          -verb:sync `
+          -source:package="$package" `
+          -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="DeployUser",password="P@ssword@123",authType="Basic" `
+          -allowUntrusted
+      displayName: "Run MSDeploy"
+      env:
+        IIS_HOST: $(IIS_HOST)
+        IIS_USER: $(IIS_USER)
+        IIS_PASSWORD: $(IIS_PASSWORD)
