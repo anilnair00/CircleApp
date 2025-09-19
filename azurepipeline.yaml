@@ -68,13 +68,21 @@ stages:
       artifact: CircleAppPackage
 
     - powershell: |
+        Write-Host "Installing Web Deploy if not already installed..."
+        $url = "https://download.microsoft.com/download/1/2/8/128FEA1C-1F20-4848-BC74-4C4779F83DB5/WebDeploy_amd64_en-US.msi"
+        $msi = "$env:TEMP\WebDeploy.msi"
+        Invoke-WebRequest $url -OutFile $msi
+        Start-Process msiexec.exe -Wait -ArgumentList "/i `"$msi`" /quiet ADDLOCAL=ALL"
+      displayName: "Install Web Deploy on agent"
+
+    - powershell: |
         $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
         $package = "$(Pipeline.Workspace)\CircleAppPackage\CircleApp.zip"
 
         & $msdeploy `
           -verb:sync `
           -source:package="$package" `
-          -dest:auto,computerName="https://10.0.0.4:8172/msdeploy.axd?site=CircleApp",userName="DeployUser",password="P@ssword@123",authType="Basic" `
+          -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=CircleApp",userName="DeployUser",password="P@ssword@123",authType="Basic" `
           -allowUntrusted
       displayName: "Run MSDeploy"
       # env:
