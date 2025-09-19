@@ -52,16 +52,25 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Deploy to IIS
+    - name: Deploy to IIS with MSDeploy
       shell: powershell
       run: |
-        # Example PowerShell commands for deployment
-        Import-Module WebAdministration
-        Stop-WebAppPool -Name "DefaultAppPool" -ErrorAction SilentlyContinue
-        Remove-Item -Path "C:\inetpub\wwwroot\*" -Recurse -Force
-        Copy-Item -Path "CircleAppPackage\CircleApp.zip" -Destination "C:\inetpub\wwwroot\" -Recurse
-        Start-WebAppPool -Name "DefaultAppPool"
+          $PackagePath  = "$(Resolve-Path ./CircleAppPackage/CircleApp.zip)"
+          $SiteName     = "Default Web Site"
+          $AppName      = "CircleApp"
+          $Server       = "20.245.242.103"    # e.g. 20.245.242.103
+          $Username     = "sam"  # deployment user
+          $Password     = "p@ssword@123"  # deployment password
+          $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
 
+          # Debug info
+          Write-Host "Deploying $PackagePath to $Server / $SiteName/$AppName"
+
+          # Run msdeploy to create/update IIS virtual application
+          & "$msdeployPath" -verb:sync `
+            -source:package="$PackagePath" `
+            -dest:iisApp="$SiteName/$AppName",computerName="https://$Server:8172/msdeploy.axd",userName="$Username",password="$Password",authType="Basic" `
+            -allowUntrusted -enableRule:DoNotDeleteRule
 ###############################################################################################
     # - name: Deploy to IIS with msdeploy
     #   shell: powershell
