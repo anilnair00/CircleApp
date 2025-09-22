@@ -89,10 +89,10 @@ jobs:
     #     $Site        = "Default Web Site/CircleApp"
     #     $msdeploy    = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
     
-        & "$msdeploy" -verb:sync `
-          -source:package="$PackagePath" `
-          -dest:iisApp="$Site",computerName="https://$Server:8172/msdeploy.axd",userName="$User",password="$Pass",authType="Basic" `
-          -allowUntrusted -enableRule:DoNotDeleteRule
+        # & "$msdeploy" -verb:sync `
+        #   -source:package="$PackagePath" `
+        #   -dest:iisApp="$Site",computerName="https://$Server:8172/msdeploy.axd",userName="$User",password="$Pass",authType="Basic" `
+        #   -allowUntrusted -enableRule:DoNotDeleteRule
 
     # - name: Deploy to IIS with MSDeploy
     #   shell: powershell
