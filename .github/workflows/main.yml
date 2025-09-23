@@ -60,8 +60,10 @@ jobs:
           & $msdeploy `
             -verb:sync `
             -source:package="CircleAppPackage/CircleApp.zip" `
-            -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
+            # -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
+            -dest:auto,ComputerName="https://20.245.242.103:8172/msdeploy.axd",UserName="sam",Password="p@ssword@123",IncludeAcls=False,AuthType=Basic `
             -allowUntrusted
+            
     # - name: Deploy with Pass-through Auth
     #   run: |
     #     "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync `
