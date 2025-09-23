@@ -56,11 +56,11 @@ jobs:
       shell: powershell
       run: |
         $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-        & "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync `
-        # -source:package="C:\path\to\YourApp.zip" `
-        -source:package= CircleAppPackage/CircleApp.zip        
-        -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic" `
-        -allowUntrusted
+        & $msdeploy `
+          -verb:sync `
+          -source:package="CircleAppPackage/CircleApp.zip" `
+          -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic" `
+          -allowUntrusted
 
 
 
