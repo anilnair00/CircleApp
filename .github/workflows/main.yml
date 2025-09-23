@@ -43,7 +43,7 @@ jobs:
           path: CircleApp.zip
 
   deployOnDev:
-    runs-on: dev
+    runs-on: windows-latest
     needs: build
     # if: github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/*')
     steps:
