@@ -51,30 +51,16 @@ jobs:
       with:
           name: CircleAppPackage
           path: CircleAppPackage
-
-    - name: Deploy to IIS with msdeploy    
-      shell: powershell    
-      run: |   
-        $ErrorActionPreference = "Stop"    
-        $msdeployExe = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"  
-        $sourcePath = "CircleAppPackage\CircleApp.zip"
-        $dest = "contentPath='${{ env.WEBSITE_NAME }}'"   
-        & "$msdeploy" -verb:sync `   
-           -source:contentPath="$sourcePath" `
-           -dest:$dest,computerName="testvm",userName="DeployUser",password="p@ssword@123",authType="Basic" `  
-           -enableRule:DoNotDeleteRule    
-      env:    
-        WEBSITE_NAME: 'Default Web Site'
         
-    # - name: Deploy with Web Deploy
-    #   shell: powershell
-    #   run: |
-    #       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
-    #       & $msdeploy `
-    #         -verb:sync `
-    #         -source:package="CircleAppPackage/CircleApp.zip" `
-    #         -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",authType="NTLM"' `
-    #         -allowUntrusted
+    - name: Deploy with Web Deploy
+      shell: powershell
+      run: |
+          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
+          & $msdeploy `
+            -verb:sync `
+            -source:package="CircleAppPackage/CircleApp.zip" `
+            -dest:'auto,computerName="http://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",authType="NTLM"' `
+            -allowUntrusted
 
   
     # - name: Deploy locally
