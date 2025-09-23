@@ -59,7 +59,7 @@ jobs:
         $msdeployExe = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"  
         $sourcePath = "CircleAppPackage\CircleApp.zip"
         $dest = "contentPath='${{ env.WEBSITE_NAME }}'"   
-        & "$msdeployExe" -verb:sync `   
+        & "$msdeploy" -verb:sync `   
            -source:contentPath="$sourcePath" `
            -dest:$dest,computerName="testvm",userName="DeployUser",password="p@ssword@123",authType="Basic" `  
            -enableRule:DoNotDeleteRule    
