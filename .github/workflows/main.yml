@@ -60,9 +60,9 @@ jobs:
         $sourcePath = "CircleAppPackage\CircleApp.zip"
         $dest = "contentPath='${{ env.WEBSITE_NAME }}'"   
         & "$msdeployExe" -verb:sync `   
-        -source:contentPath="$sourcePath" `
-        -dest:$dest,computerName="testvm",userName="DeployUser",password="p@ssword@123",authType="Basic" `  
-        -enableRule:DoNotDeleteRule    
+           -source:contentPath="$sourcePath" `
+           -dest:$dest,computerName="testvm",userName="DeployUser",password="p@ssword@123",authType="Basic" `  
+           -enableRule:DoNotDeleteRule    
       env:    
         WEBSITE_NAME: 'Default Web Site'
         
