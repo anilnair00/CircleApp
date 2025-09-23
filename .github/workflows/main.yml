@@ -61,6 +61,16 @@ jobs:
           -source:package="CircleAppPackage\CircleApp.zip" `
           -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic" `
           -allowUntrusted
+          
+    - name: Deploy with Web Deploy
+      shell: powershell
+      run: |
+        $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        & $msdeploy `
+          -verb:sync `
+          -source:package="$(Resolve-Path CircleAppPackage\CircleApp.zip)" `
+          -dest:auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic" `
+          -allowUntrusted
 
 
     # - name: Deploy with Pass-through Auth
