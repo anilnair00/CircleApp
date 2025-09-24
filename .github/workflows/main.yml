@@ -66,7 +66,6 @@ jobs:
             -source:package="CircleAppPackage/CircleApp.zip" `
             -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
             -allowUntrusted
-            -enableRule:DoNotDeleteRule
 
     # - name: Deploy with Pass-through Auth
     #   run: |
