@@ -5,7 +5,7 @@ name: Deploy
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
      - master
 
@@ -56,18 +56,6 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Ensure Web Deploy is installed
-      run: |
-        $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-        if (Test-Path $msdeployPath) {
-          Write-Host "✅ Web Deploy already installed, skipping..."
-        } else {
-          Write-Host "⬇️ Downloading and installing Web Deploy 3.6..."
-          $url = "https://download.microsoft.com/download/9/F/2/9F2E7C9A-BD38-46C0-8A82-8B7452AA9713/WebDeploy_amd64_en-US.msi"
-          $installer = "$env:TEMP\WebDeploy_amd64_en-US.msi"
-          Invoke-WebRequest -Uri $url -OutFile $installer
-          Start-Process msiexec.exe -ArgumentList "/i `"$installer`" /quiet /norestart" -Wait
-        }
 
     - name: Deploy with Web Deploy imp
       shell: powershell
@@ -78,6 +66,7 @@ jobs:
             -source:package="CircleAppPackage/CircleApp.zip" `
             -dest:'contentPath="Default Web Site\CircleApp",computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="testvm\deployuser",password="p@ssword@123",authType="Basic"' `
             -allowUntrusted
+            
 
     # - name: Deploy with Pass-through Auth
     #   run: |
