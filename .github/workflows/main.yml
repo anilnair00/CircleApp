@@ -56,30 +56,18 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Deploy to IIS with Web Deploy
-      run: |
-        $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-        
-        & $msdeploy -verb:sync `
-          -source:contentPath="CircleAppPackage\CircleApp.zip" `
-          -dest:contentPath='Default Web Site/CircleApp',`
-            computerName='https://920.242.245.103:8172/msdeploy.axd?site=Default Web Site',`
-            userName='sam',`
-            password='p@ssword@123',`
-            authtype='Basic',`
-          -enableRule:DoNotDeleteRule
-
  
-    # - name: Deploy with Web Deploy imp
-    #   shell: powershell
-    #   run: |
-    #       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
-    #       & $msdeploy `
-    #         -verb:sync `
-    #         -source:package="CircleAppPackage/CircleApp.zip" `
-    #         -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
-    #         -allowUntrusted
-            
+    - name: Deploy with Web Deploy imp
+      shell: powershell
+      run: |
+          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
+          & $msdeploy `
+            -verb:sync `
+            -source:package="CircleAppPackage/CircleApp.zip" `
+            -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
+            -allowUntrusted
+            -enableRule:DoNotDeleteRule
+
     # - name: Deploy with Pass-through Auth
     #   run: |
     #     "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" -verb:sync `
