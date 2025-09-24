@@ -64,7 +64,7 @@ jobs:
           & $msdeploy `
             -verb:sync `
             -source:package="CircleAppPackage/CircleApp.zip" `
-            -dest:'auto,computerName="https://TESTVM:8172/msdeploy.axd?site=Default Web Site",username="Testvm\DeployUser",password="p@ssword@123",authType="Basic"' `
+            -dest:'auto,computerName="https://TESTVM:8172/msdeploy.axd?site=Default Web Site/CircleApp",username="Testvm\DeployUser",password="p@ssword@123",authType="Basic"' `
             -allowUntrusted
 
     # - name: Deploy with Pass-through Auth
