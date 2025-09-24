@@ -5,6 +5,9 @@ name: Deploy
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+     - master
 
 env:
   # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
@@ -52,16 +55,23 @@ jobs:
       with:
           name: CircleAppPackage
           path: CircleAppPackage
-          
-    - name: Deploy with Web Deploy
-      shell: powershell
+
+    - name: Deploy to IIS
       run: |
-          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
-          & $msdeploy `
-            -verb:sync `
-            -source:package="CircleAppPackage/CircleApp.zip" `
-            -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
-            -allowUntrusted
+            iisreset /stop
+            Copy-Item -Path "./CircleAppPackage/CircleApp.zip" -Destination "C:/inetpub/wwwroot/CircleApp" -Recurse -Force
+            iisreset /start
+      shell: powershell
+ 
+    # - name: Deploy with Web Deploy imp
+    #   shell: powershell
+    #   run: |
+    #       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
+    #       & $msdeploy `
+    #         -verb:sync `
+    #         -source:package="CircleAppPackage/CircleApp.zip" `
+    #         -dest:'auto,computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="sam",password="p@ssword@123",authType="Basic"' `
+    #         -allowUntrusted
             
     # - name: Deploy with Pass-through Auth
     #   run: |
