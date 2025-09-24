@@ -48,7 +48,7 @@ jobs:
   deployOnDev:
     runs-on: dev
     needs: build
-    # if: github.base_ref == 'develop' || startsWith(github.ref, 'refs/heads/feature/*')
+    if: github.base_ref == 'develop'
     steps:
     - name: Download artifact
       uses: actions/download-artifact@v4
