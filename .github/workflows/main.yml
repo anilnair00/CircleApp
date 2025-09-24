@@ -62,11 +62,11 @@ jobs:
         
         & $msdeploy -verb:sync `
           -source:contentPath="CircleAppPackage\CircleApp.zip" `
-          -dest:contentPath="Default Web Site/CircleApp",`
-            computerName="https://920.242.245.103:8172/msdeploy.axd?site=Default Web Site,`
-            userName="sam",`
-            password="p@ssword@123",`
-            authtype="Basic",`
+          -dest:contentPath='Default Web Site/CircleApp',`
+            computerName='https://920.242.245.103:8172/msdeploy.axd?site=Default Web Site',`
+            userName='sam',`
+            password='p@ssword@123',`
+            authtype='Basic',`
           -enableRule:DoNotDeleteRule
 
  
