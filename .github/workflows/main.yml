@@ -9,6 +9,7 @@ on:
     branches:
      - master
 
+
 env:
   # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
   ArtifactName: "TEST"
