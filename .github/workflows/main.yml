@@ -59,7 +59,7 @@ jobs:
     - name: Deploy to IIS
       run: |
             iisreset /stop
-            Copy-Item -Path "./CircleAppPackage/CircleApp.zip" -Destination "C:/inetpub/wwwroot/CircleApp" -Recurse -Force
+            Copy-Item -Path "./CircleAppPackage/CircleApp.zip/*" -Destination "C:/inetpub/wwwroot/CircleApp" -Recurse -Force
             iisreset /start
       shell: powershell
  
