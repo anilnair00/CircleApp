@@ -84,7 +84,7 @@ jobs:
       run: |
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
           sam@20.245.242.103:C:/Temp/CircleApp.zip
-          # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/myapp.zip
+          # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
           
     - name: Deploy via WinRM
       shell: pwsh
