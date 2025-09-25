@@ -83,7 +83,7 @@ jobs:
     - name: Copy artifact to Windows Server
       run: |
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
-          testvm\sam@20.245.242.103:C:/Temp/CircleApp.zip
+          sam@20.245.242.103:C:/Temp/CircleApp.zip
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/myapp.zip
           
     - name: Deploy via WinRM
