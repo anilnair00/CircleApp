@@ -96,45 +96,45 @@ jobs:
     - name: Deploy IIS
       shell: pwsh
       run: |
-          Expand-Archive -Path "C:\temp\CircleApp" -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
-          # Restart-WebAppPool -Name "DefaultAppPool"
-          # $appPool = "DefaultAppPool"
+          Expand-Archive -Path "C:\temp\CircleApp.zip" -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
+          #Restart-WebAppPool -Name "DefaultAppPool"
+          $appPool = "DefaultAppPool"
            
-          # # Check current state
-          # $state = (Get-WebAppPoolState -Name $appPool).Value
+          # Check current state
+          $state = (Get-WebAppPoolState -Name $appPool).Value
            
-          # if ($state -eq "Stopped") {
-          # Write-Host "App Pool is stopped. Starting..."
-          # Start-WebAppPool -Name $appPool
-          # } else {
-          # Write-Host "App Pool is running. Restarting..."
-          # Restart-WebAppPool -Name $appPool       
+          if ($state -eq "Stopped") {
+          Write-Host "App Pool is stopped. Starting..."
+          Start-WebAppPool -Name $appPool
+          } else {
+          Write-Host "App Pool is running. Restarting..."
+          Restart-WebAppPool -Name $appPool       
   
-    # - name: Deploy in IIS
-    #   shell: pwsh
-    #   run: |
-    #       pwsh -Command "
-    #         \$user = 'sam'
-    #         \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
-    #         \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
+    - name: Deploy in IIS
+      shell: pwsh
+      run: |
+          pwsh -Command "
+            \$user = 'sam'
+            \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
+            \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
 
-    #         # Create SSH-based session
-    #         \$session = New-PSSession -HostName 20.245.242.103 -UserName \$user -SSHTransport
+            # Create SSH-based session
+            \$session = New-PSSession -HostName 20.245.242.103 -UserName \$user -SSHTransport
 
-    #         # Example: Copy artifact and restart IIS
-    #         Invoke-Command -Session \$session -ScriptBlock {
-    #           Write-Host 'Deploying app to IIS...'
-    #           # Stop app pool
-    #           Stop-WebAppPool -Name 'DefaultAppPool'
-    #           # Deploy files (you could use robocopy, unzip, etc.)
-    #           Copy-Item -Path 'C:\Temp\CircleApp.zip' -Destination 'C:\inetpub\wwwroot\CircleApp' -Recurse -Force
-    #           # Restart app pool
-    #           Start-WebAppPool -Name 'DefaultAppPool'
-    #         }
+            # Example: Copy artifact and restart IIS
+            Invoke-Command -Session \$session -ScriptBlock {
+              Write-Host 'Deploying app to IIS...'
+              # Stop app pool
+              Stop-WebAppPool -Name 'DefaultAppPool'
+              # Deploy files (you could use robocopy, unzip, etc.)
+              Copy-Item -Path 'C:\Temp\CircleApp.zip' -Destination 'C:\inetpub\wwwroot\CircleApp' -Recurse -Force
+              # Restart app pool
+              Start-WebAppPool -Name 'DefaultAppPool'
+            }
 
-    #         # Close session
-    #         Remove-PSSession \$session
-    #       "         
+            # Close session
+            Remove-PSSession \$session
+          "         
  ###########################################################3
  
     # - name: Install tools (if not present in AKS runner image)
