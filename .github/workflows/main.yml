@@ -6,11 +6,11 @@ name: Deploy
 on:
   workflow_dispatch:
   pull_request:
-    types: [closed]
+    # types: [closed]
     branches:
      - master
      - develop
-     - uat
+     - release
 
 env:
   # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
@@ -80,7 +80,7 @@ jobs:
           $branch = "${{ github.event.pull_request.head.ref }}"
           Write-Host "Branch to delete: $branch"
 
-          if ($branch -ne "develop" -and $branch -ne "main") {
+          if ($branch -ne "develop" -ne "release" -and $branch -ne "master") {
             Write-Host "Deleting branch $branch ..."
             $headers = @{
               Authorization = "token ${{ secrets.TOKEN }}"
