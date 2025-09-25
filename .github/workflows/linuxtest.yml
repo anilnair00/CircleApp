@@ -80,43 +80,35 @@ jobs:
         # Start PowerShell
         pwsh
 
+    - name: Copy artifact to Windows Server
+      run: |
+          scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/myapp.zip
+          
     - name: Deploy via WinRM
       shell: pwsh
       run: |
-          # Import module (install PSRemoting tools if not present)
-          Install-Module -Name PSWSMan -Force -Scope CurrentUser
-          Install-Module -Name Posh-SSH -Force -Scope CurrentUser
-          
-          $user = "testvm\sam"
-          $pass = ConvertTo-SecureString "${{ secrets.IIS_PASSWORD }}" -AsPlainText -Force
-          $cred = New-Object System.Management.Automation.PSCredential($user, $pass)
-  
-          $iisServer = "20.245.242.103"
-          $zipPath   = "CircleAppPackage\CircleApp.zip"
-          $remoteZip = "C:\temp\CircleApp.zip"
-          $remoteDir = "C:\inetpub\wwwroot\CircleApp"
-  
-          # Create remote session
-          $session = New-PSSession -ComputerName $iisServer -Credential $cred
-  
-          # Copy artifact to remote server
-          Copy-Item $zipPath $remoteZip -ToSession $session -Force
-  
-          # Deploy remotely
-          Invoke-Command -Session $session -ScriptBlock {
-              param($remoteZip, $remoteDir)
-  
-              if (Test-Path $remoteDir) { Remove-Item $remoteDir -Recurse -Force }
-              New-Item -ItemType Directory -Force -Path $remoteDir
-  
-              Expand-Archive -Path $remoteZip -DestinationPath $remoteDir -Force
-  
-              Import-Module WebAdministration
-              Restart-WebAppPool -Name "MunsonPicklesApiAppPool"
-          } -ArgumentList $remoteZip, $remoteDir
-  
-          Remove-PSSession $session
-          
+          pwsh -Command "
+            \$user = '${{ secrets.IIS_USER }}'
+            \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
+            \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
+
+            # Create SSH-based session
+            \$session = New-PSSession -HostName ${{ secrets.IIS_SERVER }} -UserName \$user -SSHTransport
+
+            # Example: Copy artifact and restart IIS
+            Invoke-Command -Session \$session -ScriptBlock {
+              Write-Host 'Deploying app to IIS...'
+              # Stop app pool
+              Stop-WebAppPool -Name 'DefaultAppPool'
+              # Deploy files (you could use robocopy, unzip, etc.)
+              Copy-Item -Path 'C:\Temp\CircleApp.zip' -Destination 'C:\inetpub\wwwroot\CircleApp' -Recurse -Force
+              # Restart app pool
+              Start-WebAppPool -Name 'DefaultAppPool'
+            }
+
+            # Close session
+            Remove-PSSession \$session
+          "         
  ###########################################################3
  
     # - name: Install tools (if not present in AKS runner image)
