@@ -59,9 +59,27 @@ jobs:
 
     - name: Install PowerShell
       run: |
-          # Install PowerShell on Ubuntu
-           sudo install powershell
-          
+        # Update package list
+        sudo apt-get update
+        
+        # Install pre-requisites
+        sudo apt-get install -y wget apt-transport-https software-properties-common
+        
+        # Download Microsoft repository GPG keys
+        wget -q "https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb" -O packages-microsoft-prod.deb
+        
+        # Register Microsoft repository
+        sudo dpkg -i packages-microsoft-prod.deb
+        
+        # Update after adding repo
+        sudo apt-get update
+        
+        # Install PowerShell
+        sudo apt-get install -y powershell
+        
+        # Start PowerShell
+        pwsh
+
     - name: Deploy via WinRM
       shell: pwsh
       run: |
