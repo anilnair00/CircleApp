@@ -77,7 +77,7 @@ jobs:
           $branch = "${{ github.event.pull_request.head.ref }}"
           Write-Host "Branch to delete: $branch"
 
-          if ($branch -ne "master" -ne "release" -and $branch -ne "main") {
+          if ($branch -ne "master" -and $branch -ne "release") {
             Write-Host "Deleting branch $branch ..."
             $headers = @{
               Authorization = "token ${{ secrets.TOKEN }}"
