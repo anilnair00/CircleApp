@@ -92,29 +92,12 @@ jobs:
     #   shell: pwsh
     #   run: |
     #       Copy-Item -Path 'C:\temp\CircleApp.zip' -Destination 'C:\CircleApp\' -Recurse -Force
-
-    - name: Deploy IIS
-      shell: pwsh
-      run: |
-          Expand-Archive -Path "C:\temp\CircleApp.zip" -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
-          #Restart-WebAppPool -Name "DefaultAppPool"
-          $appPool = "DefaultAppPool"
-           
-          # Check current state
-          $state = (Get-WebAppPoolState -Name $appPool).Value
-           
-          if ($state -eq "Stopped") {
-          Write-Host "App Pool is stopped. Starting..."
-          Start-WebAppPool -Name $appPool
-          } else {
-          Write-Host "App Pool is running. Restarting..."
-          Restart-WebAppPool -Name $appPool       
-          }
+    
     - name: Deploy in IIS
       shell: pwsh
       run: |
           pwsh -Command "
-            \$user = 'sam'
+            \$user = '${{ secrets.IIS_USER }}'
             \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
             \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
 
@@ -127,11 +110,10 @@ jobs:
               # Stop app pool
               Stop-WebAppPool -Name 'DefaultAppPool'
               # Deploy files (you could use robocopy, unzip, etc.)
-              Copy-Item -Path 'C:\Temp\CircleApp.zip' -Destination 'C:\inetpub\wwwroot\CircleApp' -Recurse -Force
+              Expand-Archive -Path C:\Temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\MyApp -Force
               # Restart app pool
               Start-WebAppPool -Name 'DefaultAppPool'
             }
-
             # Close session
             Remove-PSSession \$session
           "         
