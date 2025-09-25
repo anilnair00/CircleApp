@@ -75,12 +75,12 @@ jobs:
       if: >
           github.event_name == 'pull_request' &&
           github.event.pull_request.merged == true &&
-          github.event.pull_request.base.ref == 'develop'
+          github.event.pull_request.base.ref == 'master'
       run: |
           $branch = "${{ github.event.pull_request.head.ref }}"
           Write-Host "Branch to delete: $branch"
 
-          if ($branch -ne "develop" -ne "release" -and $branch -ne "master") {
+          if ($branch -ne "master" -ne "release" -and $branch -ne "main") {
             Write-Host "Deleting branch $branch ..."
             $headers = @{
               Authorization = "token ${{ secrets.TOKEN }}"
