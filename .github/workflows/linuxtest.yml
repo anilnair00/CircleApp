@@ -98,17 +98,17 @@ jobs:
       run: |
           Expand-Archive -Path "C:\temp\CircleApp -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
           # Restart-WebAppPool -Name "DefaultAppPool"
-          $appPool = "DefaultAppPool"
+          # $appPool = "DefaultAppPool"
            
-          # Check current state
-          $state = (Get-WebAppPoolState -Name $appPool).Value
+          # # Check current state
+          # $state = (Get-WebAppPoolState -Name $appPool).Value
            
-          if ($state -eq "Stopped") {
-          Write-Host "App Pool is stopped. Starting..."
-          Start-WebAppPool -Name $appPool
-          } else {
-          Write-Host "App Pool is running. Restarting..."
-          Restart-WebAppPool -Name $appPool       
+          # if ($state -eq "Stopped") {
+          # Write-Host "App Pool is stopped. Starting..."
+          # Start-WebAppPool -Name $appPool
+          # } else {
+          # Write-Host "App Pool is running. Restarting..."
+          # Restart-WebAppPool -Name $appPool       
   
     # - name: Deploy in IIS
     #   shell: pwsh
