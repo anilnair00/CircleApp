@@ -46,100 +46,66 @@ jobs:
           name: CircleAppPackage
           path: CircleApp.zip
 
-  deployOnDev:
-    runs-on: dev
-    needs: build
-    if: github.base_ref == 'master'
-    steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-          name: CircleAppPackage
-          path: CircleAppPackage
-   
-    - name: Install tools (if not present in AKS runner image)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y openssh-client
+      - name: Deploy via WinRM
+        shell: pwsh
+        run: |
+          $user = "testvm\sam"
+          $pass = ConvertTo-SecureString "${{ secrets.IIS_PASSWORD }}" -AsPlainText -Force
+          $cred = New-Object System.Management.Automation.PSCredential($user, $pass)
+  
+          $iisServer = "20.245.242.103"
+          $zipPath   = "CircleAppPackage\CircleApp.zip"
+          $remoteZip = "C:\temp\MunsonPickles.Api.zip"
+          $remoteDir = "C:\inetpub\wwwroot\CircleApp"
+  
+          # Create remote session
+          $session = New-PSSession -ComputerName $iisServer -Credential $cred
+  
+          # Copy artifact to remote server
+          Copy-Item $zipPath $remoteZip -ToSession $session -Force
+  
+          # Deploy remotely
+          Invoke-Command -Session $session -ScriptBlock {
+              param($remoteZip, $remoteDir)
+  
+              if (Test-Path $remoteDir) { Remove-Item $remoteDir -Recurse -Force }
+              New-Item -ItemType Directory -Force -Path $remoteDir
+  
+              Expand-Archive -Path $remoteZip -DestinationPath $remoteDir -Force
+  
+              Import-Module WebAdministration
+              Restart-WebAppPool -Name "MunsonPicklesApiAppPool"
+          } -ArgumentList $remoteZip, $remoteDir
+  
+          Remove-PSSession $session
+          
+ ###########################################################3
  
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.WIN_SERVER }} >> ~/.ssh/known_hosts
+    # - name: Install tools (if not present in AKS runner image)
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install -y openssh-client
  
-    - name: Copy build artifacts to IIS server
-      run: |
-        scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./dotnetcorewebapp/* \
-          ${{ secrets.WIN_USER }}@${{ secrets.WIN_SERVER }}:/C:/deploy/dotnetcorewebapp/
+    # - name: Setup SSH key
+    #   run: |
+    #     mkdir -p ~/.ssh
+    #     echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+    #     chmod 600 ~/.ssh/id_rsa
+    #     ssh-keyscan -H ${{ secrets.WIN_SERVER }} >> ~/.ssh/known_hosts
  
-    - name: Restart IIS and move files
-      run: |
-        ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
-          ${{ secrets.WIN_USER }}@${{ secrets.WIN_SERVER }} powershell -Command "
-            iisreset /stop;
-            Copy-Item 'C:\deploy\dotnetcorewebapp\*' 'C:\inetpub\wwwroot\dotnetcore-webapp' -Recurse -Force;
-            iisreset /start
-          "
+    # - name: Copy build artifacts to IIS server
+    #   run: |
+    #     scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -r ./dotnetcorewebapp/* \
+    #       ${{ secrets.WIN_USER }}@${{ secrets.WIN_SERVER }}:/C:/deploy/dotnetcorewebapp/
+ 
+    # - name: Restart IIS and move files
+    #   run: |
+    #     ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no \
+    #       ${{ secrets.WIN_USER }}@${{ secrets.WIN_SERVER }} powershell -Command "
+    #         iisreset /stop;
+    #         Copy-Item 'C:\deploy\dotnetcorewebapp\*' 'C:\inetpub\wwwroot\dotnetcore-webapp' -Recurse -Force;
+    #         iisreset /start
+    #       "
 
 ###############################################################################
-    # - name: Deploy with Web Deploy imp
-    #   shell: powershell
-    #   run: |
-    #       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"          
-    #       & $msdeploy `
-    #         -verb:sync `
-    #         -source:package="CircleAppPackage/CircleApp.zip" `
-    #         -dest:'contentPath="Default Web Site\CircleApp",computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="testvm\deployuser",password="p@ssword@123",authType="Basic"' `
-    #         -allowUntrusted
 
-
-#######################################################################
-    # - name: Auto-delete merged feature branch
-    #   if: >
-    #       github.event_name == 'pull_request' &&
-    #       github.event.action == 'closed' &&
-    #       github.event.pull_request.merged == true &&
-    #       github.event.pull_request.base.ref == 'master'
-    #   run: |
-    #       $branch = "${{ github.event.pull_request.head.ref }}"
-    #       Write-Host "Branch to delete: $branch"
-
-    #       if ($branch -ne "master" -and $branch -ne "release" -and $branch -ne "main") {
-    #         Write-Host "Deleting branch $branch ..."
-    #         $headers = @{
-    #           Authorization = "token ${{ secrets.TOKEN }}"
-    #           Accept        = "application/vnd.github.v3+json"
-    #         }
-    #         Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$branch" -Headers $headers -Method Delete
-    #       } else {
-    #         Write-Host "Skipping deletion of protected branch: $branch"
-    #       }
-
-#########################################################################
-
-    # - name: Deploy locally
-      # shell: powershell
-      # run: |
-      #   Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
-      #   # Restart-WebAppPool -Name "DefaultAppPool"
-      #   $appPool = "DefaultAppPool"
-    
-      #   # Check current state
-      #   $state = (Get-WebAppPoolState -Name $appPool).Value
-    
-      #   if ($state -eq "Stopped") {
-      #       Write-Host "App Pool is stopped. Starting..."
-      #       Start-WebAppPool -Name $appPool
-      #   } else {
-      #       Write-Host "App Pool is running. Restarting..."
-      #       Restart-WebAppPool -Name $appPool
-      #   }      
-
-###############################################################################################
-          
-
-    
-      #     publish-profile: ${{ secrets.API_PUBLISH_SECRET }}
-      #     package: ./publish
