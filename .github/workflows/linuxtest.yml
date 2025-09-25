@@ -82,7 +82,7 @@ jobs:
 
     - name: Copy artifact to Windows Server
       run: |
-          sudo apt-get install -y sshpas
+          sudo apt-get install -y sshpass
           sshpass -p '${{ secrets.IIS_PASSWORD }}' \
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
           sam@20.245.242.103:C:/Temp/CircleApp.zip
