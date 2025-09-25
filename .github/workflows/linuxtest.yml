@@ -82,41 +82,47 @@ jobs:
 
     - name: Copy artifact to Windows Server
       run: |
+          sudo apt-get update
           sudo apt-get install -y sshpass
           sshpass -p '${{ secrets.IIS_PASSWORD }}' \
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
           sam@20.245.242.103:C:/Temp/
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
+          
+    - name: Run deploy script remotely
+      run: |
+        pwsh -Command "
+          \$session = New-PSSession -HostName 20.245.242.103 -UserName ${{ secrets.IIS_USER }} -SSHTransport
+          Copy-Item ./deploy.ps1 -Destination C:\Temp\ -ToSession \$session -Force
+          Invoke-Command -Session \$session -ScriptBlock { pwsh -File C:\Temp\deploy.ps1 }
+          Remove-PSSession \$session
+        "
 
-    # - name: Copy to server location
+    
+    # - name: Deploy in IIS
     #   shell: pwsh
     #   run: |
-    #       Copy-Item -Path 'C:\temp\CircleApp.zip' -Destination 'C:\CircleApp\' -Recurse -Force
-    
-    - name: Deploy in IIS
-      shell: pwsh
-      run: |
-          pwsh -Command "
-            \$user = '${{ secrets.IIS_USER }}'
-            \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
-            \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
+    #       pwsh -Command "
+    #         \$user = '${{ secrets.IIS_USER }}'
+    #         \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
+    #         \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
 
-            # Create SSH-based session
-            \$session = New-PSSession -HostName 20.245.242.103 -UserName \$user -SSHTransport
+    #         # Create SSH-based session
+    #         \$session = New-PSSession -HostName 20.245.242.103 -UserName \$user -SSHTransport
 
-            # Example: Copy artifact and restart IIS
-            Invoke-Command -Session \$session -ScriptBlock {
-              Write-Host 'Deploying app to IIS...'
-              # Stop app pool
-              Stop-WebAppPool -Name 'DefaultAppPool'
-              # Deploy files (you could use robocopy, unzip, etc.)
-              Expand-Archive -Path C:\Temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\MyApp -Force
-              # Restart app pool
-              Start-WebAppPool -Name 'DefaultAppPool'
-            }
-            # Close session
-            Remove-PSSession \$session
-          "         
+    #         # Example: Copy artifact and restart IIS
+    #         Invoke-Command -Session \$session -ScriptBlock {
+    #           Write-Host 'Deploying app to IIS...'
+    #           # Stop app pool
+    #           Stop-WebAppPool -Name 'DefaultAppPool'
+    #           # Deploy files (you could use robocopy, unzip, etc.)
+    #           Expand-Archive -Path C:\Temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\MyApp -Force
+    #           # Restart app pool
+    #           Start-WebAppPool -Name 'DefaultAppPool'
+    #         }
+    #         # Close session
+    #         Remove-PSSession \$session
+    #       "         
  ###########################################################3
  
     # - name: Install tools (if not present in AKS runner image)
