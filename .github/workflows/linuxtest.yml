@@ -57,6 +57,11 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
+    - name: Set up PowerShell
+      uses: actions/setup-powershell@v2
+      with:
+          version: '7.1.3'  # Optional, specify the version of PowerShell you want
+          
     - name: Deploy via WinRM
       shell: pwsh
       run: |
