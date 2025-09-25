@@ -96,7 +96,7 @@ jobs:
     - name: Deploy IIS
       shell: pwsh
       run: |
-          Expand-Archive -Path "C:\temp\CircleApp -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
+          Expand-Archive -Path "C:\temp\CircleApp" -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
           # Restart-WebAppPool -Name "DefaultAppPool"
           # $appPool = "DefaultAppPool"
            
