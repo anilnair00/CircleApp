@@ -91,7 +91,7 @@ jobs:
     - name: Copy to server location
       shell: pwsh
       run: |
-              Copy-Item -Path 'C:\Temp\CircleApp.zip' -Destination 'D:\CircleApp\' -Recurse -Force
+              Copy-Item -Path 'C:\temp\CircleApp.zip' -Destination 'C:\CircleApp\' -Recurse -Force
 
     - name: Deploy IIS
       shell: pwsh
