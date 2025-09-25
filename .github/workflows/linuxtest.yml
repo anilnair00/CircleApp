@@ -60,7 +60,7 @@ jobs:
     - name: Install PowerShell
       run: |
           # Install PowerShell on Ubuntu
-           sudo install powershell --classic
+           sudo install powershell
           
     - name: Deploy via WinRM
       shell: pwsh
