@@ -88,10 +88,10 @@ jobs:
           sam@20.245.242.103:C:/Temp/CircleApp.zip
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
 
-    - name: Copy to server location
-      shell: pwsh
-      run: |
-              Copy-Item -Path 'C:\temp\CircleApp.zip' -Destination 'C:\CircleApp\' -Recurse -Force
+    # - name: Copy to server location
+    #   shell: pwsh
+    #   run: |
+    #       Copy-Item -Path 'C:\temp\CircleApp.zip' -Destination 'C:\CircleApp\' -Recurse -Force
 
     - name: Deploy IIS
       shell: pwsh
