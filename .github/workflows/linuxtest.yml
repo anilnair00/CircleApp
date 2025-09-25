@@ -109,7 +109,7 @@ jobs:
           } else {
           Write-Host "App Pool is running. Restarting..."
           Restart-WebAppPool -Name $appPool       
-  
+          }
     - name: Deploy in IIS
       shell: pwsh
       run: |
