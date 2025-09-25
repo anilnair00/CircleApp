@@ -1,4 +1,4 @@
-name: Deploy 
+name: linux teting 
 
 on:
   workflow_dispatch:
