@@ -49,7 +49,7 @@ jobs:
   deployOnDev:
     runs-on: runner1
     needs: build
-    if: github.base_ref == 'master'
+    # if: github.base_ref == 'master'
     steps:
     - name: Download artifact
       uses: actions/download-artifact@v4
