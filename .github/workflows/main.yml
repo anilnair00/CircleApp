@@ -67,6 +67,7 @@ jobs:
             -dest:'contentPath="Default Web Site\CircleApp",computerName="https://20.245.242.103:8172/msdeploy.axd?site=Default Web Site",username="testvm\deployuser",password="p@ssword@123",authType="Basic"' `
             -allowUntrusted
 
+
 #######################################################################
     - name: Auto-delete merged feature branch
       if: >
