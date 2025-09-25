@@ -46,16 +46,31 @@ jobs:
           name: CircleAppPackage
           path: CircleApp.zip
 
-      - name: Deploy via WinRM
-        shell: pwsh
-        run: |
+  deployOnDev:
+    runs-on: runner1
+    needs: build
+    if: github.base_ref == 'master'
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleAppPackage
+          path: CircleAppPackage
+
+    - name: Deploy via WinRM
+      shell: pwsh
+      run: |
+          # Import module (install PSRemoting tools if not present)
+          Install-Module -Name PSWSMan -Force -Scope CurrentUser
+          Install-Module -Name Posh-SSH -Force -Scope CurrentUser
+          
           $user = "testvm\sam"
           $pass = ConvertTo-SecureString "${{ secrets.IIS_PASSWORD }}" -AsPlainText -Force
           $cred = New-Object System.Management.Automation.PSCredential($user, $pass)
   
           $iisServer = "20.245.242.103"
           $zipPath   = "CircleAppPackage\CircleApp.zip"
-          $remoteZip = "C:\temp\MunsonPickles.Api.zip"
+          $remoteZip = "C:\temp\CircleApp.zip"
           $remoteDir = "C:\inetpub\wwwroot\CircleApp"
   
           # Create remote session
