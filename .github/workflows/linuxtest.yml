@@ -92,9 +92,9 @@ jobs:
     - name: Run deploy script remotely
       run: |
         pwsh -Command "
-          \$session = New-PSSession -HostName 20.245.242.103 -UserName ${{ secrets.IIS_USER }} -SSHTransport
-          Copy-Item ./deploy.ps1 -Destination C:\Temp\ -ToSession \$session -Force
-          Invoke-Command -Session \$session -ScriptBlock { pwsh -File C:\Temp\deploy.ps1 }
+          \$session = New-PSSession -HostName 20.245.242.103 -UserName sam -SSHTransport
+          Copy-Item ./deploy.ps1 -Destination C:\temp\deploy.ps1 -ToSession \$session -Force
+          Invoke-Command -Session \$session -ScriptBlock { pwsh -File C:\temp\deploy.ps1 }
           Remove-PSSession \$session
         "
 
