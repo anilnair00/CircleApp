@@ -1,6 +1,3 @@
-
-# github action
-
 name: Deploy 
 
 on:
