@@ -88,16 +88,16 @@ jobs:
           sam@20.245.242.103:C:/Temp/CircleApp.zip
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
           
-    - name: Deploy via WinRM
+    - name: Deploy in IIS
       shell: pwsh
       run: |
           pwsh -Command "
-            \$user = '${{ secrets.IIS_USER }}'
+            \$user = 'sam'
             \$pass = ConvertTo-SecureString '${{ secrets.IIS_PASSWORD }}' -AsPlainText -Force
             \$cred = New-Object System.Management.Automation.PSCredential(\$user, \$pass)
 
             # Create SSH-based session
-            \$session = New-PSSession -HostName ${{ secrets.IIS_SERVER }} -UserName \$user -SSHTransport
+            \$session = New-PSSession -HostName 20.245.242.103 -UserName \$user -SSHTransport
 
             # Example: Copy artifact and restart IIS
             Invoke-Command -Session \$session -ScriptBlock {
