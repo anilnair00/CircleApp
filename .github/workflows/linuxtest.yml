@@ -109,7 +109,7 @@ jobs:
           IIS_HOST: "20.245.242.103"
           IIS_TARGET_PATH: C:\inetpub\wwwroot\CircleApp
       run: |
-          sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:/temp/CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"        
+          sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:\temp\CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"        
  ###########################################################################################
 
     # - name: Copy artifact to Windows Server
