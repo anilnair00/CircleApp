@@ -73,8 +73,8 @@ jobs:
           win_user = "${{ secrets.IIS_USER }}"      # Windows user
           win_pass = "${{ secrets.IIS_PASSWORD }}"      # Windows password
           local_folder = "CircleAppPackage/CircleAppPackage.zip"                # Build output folder on runner
-          remote_temp = "C:\temp\"          # Temp staging folder on IIS
-          remote_wwwroot = "C:\inetpub\\wwwroot\CircleApp"
+          remote_temp = "C:\\temp\\"          # Temp staging folder on IIS
+          remote_wwwroot = "C:\\inetpub\\wwwroot\\CircleApp"
 
           # --- Connect to WinRM ---
           session = winrm.Session(
