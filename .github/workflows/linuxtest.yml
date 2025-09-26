@@ -93,28 +93,28 @@ jobs:
         sudo apt-get install -y sshpass
     
         sshpass -p "${{ secrets.IIS_PASSWORD }}" \
-        ssh -o StrictHostKeyChecking=no ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }} powershell -Command '
+        ssh -o StrictHostKeyChecking=no ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }} powershell -Command "& {
           $siteName = "Default Web Site"
           $appPool = "DefaultAppPool"
           
-          Write-Host "Stopping IIS site: $siteName";
+          Write-Host "Stopping IIS site: $siteName"
           Stop-WebSite -Name $siteName -ErrorAction SilentlyContinue
           
-          Write-Host "Stopping App Pool: $appPool";
+          Write-Host "Stopping App Pool: $appPool"
           Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
 
-          Write-Host "Cleaning target folder";
+          Write-Host "Cleaning target folder"
           Remove-Item -Recurse -Force "C:\inetpub\wwwroot\CircleApp\*" -ErrorAction SilentlyContinue
           
-          Write-Host 'Extracting CircleApp.zip to inetpub...';
+          Write-Host 'Extracting CircleApp.zip to inetpub...'
           Expand-Archive -Path 'C:\temp\CircleApp.zip' -DestinationPath 'C:\inetpub\wwwroot\CircleApp' -Force; 
           
-          Write-Host "Starting App Pool: $appPool";
+          Write-Host "Starting App Pool: $appPool"
           Start-WebAppPool -Name $appPool
     
-          Write-Host "Starting IIS site: $siteName";
+          Write-Host "Starting IIS site: $siteName"
           Start-WebSite -Name $siteName
-          '      
+          }"     
     # - name: Copy artifact to Windows Server
     #   run: |
     #       sudo apt-get update
