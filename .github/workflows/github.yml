@@ -1,0 +1,63 @@
+name: linux teting 
+
+on:
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  push:
+    branches:
+     - master
+     - develop
+     - release
+
+env:
+  # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
+  ArtifactName: "TEST"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+        
+      - name: Restore dependencies
+        run: dotnet restore CircleApp.sln
+
+      - name: Build
+        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+        
+      - name: Publish project
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
+
+      - name: Create deployment zip
+        run: |
+          cd ./publish
+          zip -r ../CircleApp.zip .
+          cd ..
+  
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CircleAppPackage
+          path: CircleApp.zip
+
+  deployOnDev:
+    runs-on: runner1
+    needs: build
+    # if: github.base_ref == 'master'
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleAppPackage
+          path: CircleAppPackage
+
+
+
+
+  
