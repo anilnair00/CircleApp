@@ -64,15 +64,6 @@ jobs:
     #     # Install sshpass if you want to use password (not recommended)
     #     sudo apt-get update && sudo apt-get install -y sshpass
 
-    - name: Copy artifact to Windows Server
-      run: |
-          sudo apt-get update
-          sudo apt-get install -y sshpass
-          sshpass -p '${{ secrets.IIS_PASSWORD }}' \
-          scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
-          sam@20.245.242.103:C:/Temp/
-          # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
-
     - name: Install PowerShell
       run: |
         # Update package list
@@ -95,18 +86,25 @@ jobs:
         
         # Start PowerShell
         pwsh
-        # Copy files over SSH/SCP
-        scp -i '${{ secrets.IIS_PASSWORD }}' -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip sam@20.245.242.103:C:\temp\
+        
+    - name: Copy artifact to Windows Server
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          sshpass -p '${{ secrets.IIS_PASSWORD }}' \
+          scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
+          sam@20.245.242.103:C:/Temp/
+          # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
 
-        # Stop IIS site
-        Stop-Website -Name "Defauly Web Site"
-        
-        # Deploy files
-        # Copy-Item -Path "C:\Temp\site\*" -Destination "C:\inetpub\wwwroot\CircleApp" -Recurse -Force
-        Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
-        
-        # Start IIS site
-        Start-Website -Name "Default Web Site"
+          # Stop IIS site
+          Stop-Website -Name "Defauly Web Site"
+          
+          # Deploy files
+          # Copy-Item -Path "C:\Temp\site\*" -Destination "C:\inetpub\wwwroot\CircleApp" -Recurse -Force
+          Expand-Archive -Path CircleAppPackage/CircleApp.zip -DestinationPath "C:\inetpub\wwwroot\CircleApp" -Force
+          
+          # Start IIS site
+          Start-Website -Name "Default Web Site"
 
  ###########################################################################################
 
