@@ -95,12 +95,21 @@ jobs:
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
           sam@20.245.242.103:C:/Temp/
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
-          sshpass -p ${{ secrets.IIS_PASSWORD }} \
-          ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -Command '
-          iisreset /stop;
-          Expand-Archive -Path C:\temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\CircleApp -Force;
-          iisreset /start
-          '
+          # sshpass -p ${{ secrets.IIS_PASSWORD }} \
+          # ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -Command '
+          # iisreset /stop;
+          # Expand-Archive -Path C:\temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\CircleApp -Force;
+          # iisreset /start
+          # '
+
+    - name: Unzip on IIS via SSH
+      env:
+          IIS_USERNAME: ${{ secrets.IIS_USERNAME }}
+          IIS_PASSWORD: ${{ secrets.IIS_PASSWORD }}
+          IIS_HOST: "20.245.242.103"
+          IIS_TARGET_PATH: C:/inetpub/wwwroot/CircleApp  # Example: C:/inetpub/wwwroot/myapp
+      run: |
+          sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:/temp/CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"        
  ###########################################################################################
 
     # - name: Copy artifact to Windows Server
