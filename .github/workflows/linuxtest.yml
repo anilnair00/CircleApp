@@ -95,13 +95,12 @@ jobs:
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
           sam@20.245.242.103:C:/Temp/
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
-              
-          ssh -o StrictHostKeyChecking=no ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }} powershell -Command "
+          
+          ssh -o StrictHostKeyChecking=no sam@$20.245.242.103 powershell -Command "
           iisreset /stop;
-          Expand-Archive -Path C:\Temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\CircleApp -Force;
+          Expand-Archive -Path C:\temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\CircleApp -Force;
           iisreset /start
           "
-
  ###########################################################################################
 
     # - name: Copy artifact to Windows Server
