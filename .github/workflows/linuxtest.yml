@@ -87,48 +87,20 @@ jobs:
         # Start PowerShell
         pwsh
 
-    - name: Deploy to IIS (Windows Server)
+    - name: Copy artifact to Windows Server
       run: |
-        sudo apt-get update
-        sudo apt-get install -y sshpass
-    
-        sshpass -p "${{ secrets.IIS_PASSWORD }}" \
-        ssh -o StrictHostKeyChecking=no ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }} powershell -Command "& {
-          $siteName = "Default Web Site"
-          $appPool = "DefaultAppPool"
-          
-          Write-Host "Stopping IIS site: $siteName"
-          Stop-WebSite -Name $siteName -ErrorAction SilentlyContinue
-          
-          Write-Host "Stopping App Pool: $appPool"
-          Stop-WebAppPool -Name $appPool -ErrorAction SilentlyContinue
-
-          Write-Host "Cleaning target folder"
-          Remove-Item -Recurse -Force "C:\inetpub\wwwroot\CircleApp\*" -ErrorAction SilentlyContinue
-          
-          Write-Host 'Extracting CircleApp.zip to inetpub...'
-          Expand-Archive -Path 'C:\temp\CircleApp.zip' -DestinationPath 'C:\inetpub\wwwroot\CircleApp' -Force; 
-          
-          Write-Host "Starting App Pool: $appPool"
-          Start-WebAppPool -Name $appPool
-    
-          Write-Host "Starting IIS site: $siteName"
-          Start-WebSite -Name $siteName
-          }"     
-    # - name: Copy artifact to Windows Server
-    #   run: |
-    #       sudo apt-get update
-    #       sudo apt-get install -y sshpass
-    #       sshpass -p '${{ secrets.IIS_PASSWORD }}' \
-    #       scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
-    #       sam@20.245.242.103:C:/Temp/
-    #       # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
-    #       sshpass -p ${{ secrets.IIS_PASSWORD }} \
-    #       ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -Command "
-    #       iisreset /stop;
-    #       Expand-Archive -Path C:\temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\CircleApp -Force;
-    #       iisreset /start
-    #       "
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          sshpass -p '${{ secrets.IIS_PASSWORD }}' \
+          scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
+          sam@20.245.242.103:C:/Temp/
+          # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
+          sshpass -p ${{ secrets.IIS_PASSWORD }} \
+          ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -Command '
+          iisreset /stop;
+          Expand-Archive -Path C:\temp\CircleApp.zip -DestinationPath C:\inetpub\wwwroot\CircleApp -Force;
+          iisreset /start
+          '
  ###########################################################################################
 
     # - name: Copy artifact to Windows Server
