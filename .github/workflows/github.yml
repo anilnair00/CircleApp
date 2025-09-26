@@ -74,8 +74,8 @@ jobs:
               encoded = base64.b64encode(f.read()).decode("utf-8")
 
           session = winrm.Session(
-              target='${{ secrets.IIS_HOST }}',
-              auth=('${{ secrets.IIS_USER }}', '${{ secrets.IIS_PASSWORD }}'),
+              target='20.245.242.103',
+              auth=('sam', 'p@ssword@123'),
               transport='basic'
           )
 
