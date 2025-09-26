@@ -96,7 +96,7 @@ jobs:
         # Start PowerShell
         pwsh
         # Copy files over SSH/SCP
-        scp -i key.pem -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip sam@20.245.242.103:C:\temp\
+        scp -i '${{ secrets.IIS_PASSWORD }}' -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip sam@20.245.242.103:C:\temp\
 
         # Stop IIS site
         Stop-Website -Name "Defauly Web Site"
