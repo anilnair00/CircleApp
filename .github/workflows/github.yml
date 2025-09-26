@@ -58,11 +58,11 @@ jobs:
           path: CircleAppPackage
 
     - name: Deploy artifact to IIS via WinRM
-       env:
+      env:
           WINRM_HOST: ${{ secrets.IIS_SERVER }}
           WINRM_USER: ${{ secrets.IIS_USER }}
           WINRM_PASS: ${{ secrets.IIS_PASSWORD }}
-        run: |
+      run: |
           python3 <<EOF
           import winrm
           import base64
