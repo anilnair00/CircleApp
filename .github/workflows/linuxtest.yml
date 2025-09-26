@@ -57,16 +57,21 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Copy files to remote server via SCP
-      env:
-        SSH_KEY: p@ssword@123
-      run: |
-        # Install sshpass if you want to use password (not recommended)
-        # sudo apt-get update && sudo apt-get install -y sshpass
+    # - name: Copy files to remote server via SCP
+    #   env:
+    #     SSH_KEY: p@ssword@123
+    #   run: |
+    #     # Install sshpass if you want to use password (not recommended)
+    #     sudo apt-get update && sudo apt-get install -y sshpass
 
-        # Save the SSH key to a file
-        echo "$SSH_KEY" > key.pem
-        chmod 600 key.pem
+    - name: Copy artifact to Windows Server
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+          sshpass -p '${{ secrets.IIS_PASSWORD }}' \
+          scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
+          sam@20.245.242.103:C:/Temp/
+          # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
 
     - name: Install PowerShell
       run: |
