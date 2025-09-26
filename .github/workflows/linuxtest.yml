@@ -104,10 +104,10 @@ jobs:
 
     - name: Unzip on IIS via SSH
       env:
-          IIS_USERNAME: ${{ secrets.IIS_USERNAME }}
-          IIS_PASSWORD: ${{ secrets.IIS_PASSWORD }}
+          IIS_USERNAME: "sam"
+          IIS_PASSWORD: "p@ssword@123"
           IIS_HOST: "20.245.242.103"
-          IIS_TARGET_PATH: C:/inetpub/wwwroot/CircleApp  # Example: C:/inetpub/wwwroot/myapp
+          IIS_TARGET_PATH: "C:/inetpub/wwwroot/CircleApp"  # Example: C:/inetpub/wwwroot/myapp
       run: |
           sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:/temp/CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"        
  ###########################################################################################
