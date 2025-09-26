@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
   # pull_request:
   #   types: [opened, synchronize, reopened, closed]
-  push:
-    branches:
-     - master
-     - develop
-     - release
+  # push:
+  #   branches:
+  #    - master
+  #    - develop
+  #    - release
 
 env:
   # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
