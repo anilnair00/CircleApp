@@ -57,6 +57,12 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
+
+    - name: Setup Python and Install WinRM client
+      run: |
+          python3 -m pip install --upgrade pip
+          pip3 install pywinrm requests-ntlm
+          
     - name: Deploy via WinRM
       run: |
           python3 - <<'EOF'
