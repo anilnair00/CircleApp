@@ -1,4 +1,4 @@
-name: linux teting 
+name: github teting 
 
 on:
   workflow_dispatch:
@@ -74,7 +74,7 @@ jobs:
         import base64
         
         remote_zip = r'C:\Temp\CircleApp.zip'
-        local_zip = 'CircleAppPackage\CircleApp.zip'
+        local_zip = 'CircleAppPackage/CircleApp.zip'
         
         # Read file and encode as base64
         with open(local_zip, 'rb') as f:
