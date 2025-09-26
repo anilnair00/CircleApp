@@ -57,51 +57,55 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Install Python + pywinrm
-      run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pip
-          pip3 install pywinrm
-
-    - name: Deploy to IIS via WinRM
+    - name: Deploy via WinRM
       run: |
           python3 - <<'EOF'
-          import winrm, base64
+          import os, winrm, base64
 
-          # Load ZIP file and encode as base64
-          zip_path = "CircleAppPackage/CircleApp.zip"
-          with open(zip_path, "rb") as f:
-              encoded = base64.b64encode(f.read()).decode("utf-8")
+          # --- Config ---
+          win_host = "${{ secrets.IIS_HOST }}"      # IIS public IP or DNS
+          win_user = "${{ secrets.IIS_USER }}"      # Windows user
+          win_pass = "${{ secrets.IIS_PASSWORD }}"      # Windows password
+          local_folder = "CircleAppPackage/CircleAppPackage.zip"                # Build output folder on runner
+          remote_temp = "C:\\temp\\"          # Temp staging folder on IIS
+          remote_wwwroot = "C:\\inetpub\\wwwroot\\CircleApp"
 
+          # --- Connect to WinRM ---
           session = winrm.Session(
-              target='20.245.242.103',
-              auth=('sam', 'p@ssword@123'),
-              transport='basic'
+              f'http://{win_host}:5985/wsman',
+              auth=(win_user, win_pass),
+              transport='ntlm'   # Use NTLM for Windows domain/local accounts
           )
 
-          # Step 1: Write base64 string into file
-          ps_script = f'''
-          $b64 = "{encoded}"
-          $bytes = [System.Convert]::FromBase64String($b64)
-          $filePath = "C:\\deploy\\CircleApp.zip"
-          if (-Not (Test-Path "C:\\deploy")) {{
-              New-Item -Path "C:\\deploy" -ItemType Directory | Out-Null
-          }}
-          [IO.File]::WriteAllBytes($filePath, $bytes)
-          '''
-          r = session.run_ps(ps_script)
-          print("Upload:", r.std_out.decode(), r.std_err.decode())
+          # --- Ensure temp folder exists ---
+          session.run_ps(f"New-Item -Path {remote_temp} -ItemType Directory -Force")
 
-          # Step 2: Extract ZIP into IIS wwwroot
-          ps_extract = '''
-          Expand-Archive -Path "C:\\deploy\\CircleApp.zip" -DestinationPath "C:\\inetpub\\wwwroot\\CircleApp" -Force
-          '''
-          r = session.run_ps(ps_extract)
-          print("Extract:", r.std_out.decode(), r.std_err.decode())
+          # --- Upload files one by one ---
+          for root, dirs, files in os.walk(local_folder):
+              for file in files:
+                  local_path = os.path.join(root, file)
+                  rel_path = os.path.relpath(local_path, local_folder)
+                  remote_path = os.path.join(remote_temp, rel_path).replace("/", "\\")
+                  remote_dir = os.path.dirname(remote_path)
 
-          # Step 3: Restart IIS
-          r = session.run_cmd("iisreset")
-          print("IIS Reset:", r.std_out.decode(), r.std_err.decode())
+                  # ensure remote dir exists
+                  session.run_ps(f"New-Item -Path '{remote_dir}' -ItemType Directory -Force")
+
+                  # upload file content (base64 encode to avoid corruption)
+                  with open(local_path, "rb") as f:
+                      content = base64.b64encode(f.read()).decode("utf-8")
+                  ps_script = f"""
+                  $bytes = [System.Convert]::FromBase64String("{content}")
+                  [System.IO.File]::WriteAllBytes("{remote_path}", $bytes)
+                  """
+                  session.run_ps(ps_script)
+
+          # --- Move to IIS wwwroot ---
+          session.run_ps(f"Copy-Item {remote_temp}\\* {remote_wwwroot} -Recurse -Force")
+
+          # --- Restart IIS ---
+          r = session.run_ps("iisreset")
+          print(r.std_out.decode(), r.std_err.decode())
           EOF
 
 
