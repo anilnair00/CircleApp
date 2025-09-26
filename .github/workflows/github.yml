@@ -66,7 +66,7 @@ jobs:
 
     - name: Copy files to IIS server over SSH
       run: |
-        scp -r CircleAppPackage/CircleApp.zip ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }}:"C:/Temp/"
+        scp -r CircleAppPackage/CircleApp.zip sam@20.245.242.103:"C:/temp/"
 
     - name: Deploy on IIS using PowerShell over SSH
       run: |
