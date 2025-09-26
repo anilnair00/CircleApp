@@ -57,62 +57,81 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-
-    - name: Setup Python and Install WinRM client
+    - name: Set up SSH key
       run: |
-          python3 -m pip install --upgrade pip
-          pip3 install pywinrm requests-ntlm
+        mkdir -p ~/.ssh
+        echo "${{ secrets.IIS_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.IIS_SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Copy files to IIS server over SSH
+      run: |
+        scp -r CircleAppPackage/CircleApp.zip ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }}:"C:/Temp/"
+
+    - name: Deploy on IIS using PowerShell over SSH
+      run: |
+        ssh ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }} 'powershell -Command "
+          Expand-Archive -Path C:/Temp/CircleApp.zip -DestinationPath C:/inetpub/wwwroot/CircleApp -Force;
+          Restart-WebAppPool -Name \"DefaultAppPool\"
+        "'
+
+################################################################################
+
+    # - name: Setup Python and Install WinRM client
+    #   run: |
+    #       python3 -m pip install --upgrade pip
+    #       pip3 install pywinrm requests-ntlm
           
-    - name: Deploy via WinRM
-      run: |
-          python3 - <<'EOF'
-          import os, winrm, base64
+    # - name: Deploy via WinRM
+    #   run: |
+    #       python3 - <<'EOF'
+    #       import os, winrm, base64
 
-          # --- Config ---
-          win_host = "${{ secrets.IIS_HOST }}"      # IIS public IP or DNS
-          win_user = "${{ secrets.IIS_USER }}"      # Windows user
-          win_pass = "${{ secrets.IIS_PASSWORD }}"      # Windows password
-          local_folder = "CircleAppPackage/CircleApp.zip"                # Build output folder on runner
-          remote_temp = "C:\\temp\\"          # Temp staging folder on IIS
-          remote_wwwroot = "C:\\inetpub\\wwwroot\\CircleApp"
+    #       # --- Config ---
+    #       win_host = "${{ secrets.IIS_HOST }}"      # IIS public IP or DNS
+    #       win_user = "${{ secrets.IIS_USER }}"      # Windows user
+    #       win_pass = "${{ secrets.IIS_PASSWORD }}"      # Windows password
+    #       local_folder = "CircleAppPackage/CircleApp.zip"                # Build output folder on runner
+    #       remote_temp = "C:\\temp\\"          # Temp staging folder on IIS
+    #       remote_wwwroot = "C:\\inetpub\\wwwroot\\CircleApp"
 
-          # --- Connect to WinRM ---
-          session = winrm.Session(
-              f'http://{win_host}:5985/wsman',
-              auth=(win_user, win_pass),
-              transport='ntlm'   # Use NTLM for Windows domain/local accounts
-          )
+    #       # --- Connect to WinRM ---
+    #       session = winrm.Session(
+    #           f'http://{win_host}:5985/wsman',
+    #           auth=(win_user, win_pass),
+    #           transport='ntlm'   # Use NTLM for Windows domain/local accounts
+    #       )
 
-          # --- Ensure temp folder exists ---
-          session.run_ps(f"New-Item -Path {remote_temp} -ItemType Directory -Force")
+    #       # --- Ensure temp folder exists ---
+    #       session.run_ps(f"New-Item -Path {remote_temp} -ItemType Directory -Force")
 
-          # --- Upload files one by one ---
-          for root, dirs, files in os.walk(local_folder):
-              for file in files:
-                  local_path = os.path.join(root, file)
-                  rel_path = os.path.relpath(local_path, local_folder)
-                  remote_path = os.path.join(remote_temp, rel_path).replace("/", "\\")
-                  remote_dir = os.path.dirname(remote_path)
+    #       # --- Upload files one by one ---
+    #       for root, dirs, files in os.walk(local_folder):
+    #           for file in files:
+    #               local_path = os.path.join(root, file)
+    #               rel_path = os.path.relpath(local_path, local_folder)
+    #               remote_path = os.path.join(remote_temp, rel_path).replace("/", "\\")
+    #               remote_dir = os.path.dirname(remote_path)
 
-                  # ensure remote dir exists
-                  session.run_ps(f"New-Item -Path '{remote_dir}' -ItemType Directory -Force")
+    #               # ensure remote dir exists
+    #               session.run_ps(f"New-Item -Path '{remote_dir}' -ItemType Directory -Force")
 
-                  # upload file content (base64 encode to avoid corruption)
-                  with open(local_path, "rb") as f:
-                      content = base64.b64encode(f.read()).decode("utf-8")
-                  ps_script = f"""
-                  $bytes = [System.Convert]::FromBase64String("{content}")
-                  [System.IO.File]::WriteAllBytes("{remote_path}", $bytes)
-                  """
-                  session.run_ps(ps_script)
+    #               # upload file content (base64 encode to avoid corruption)
+    #               with open(local_path, "rb") as f:
+    #                   content = base64.b64encode(f.read()).decode("utf-8")
+    #               ps_script = f"""
+    #               $bytes = [System.Convert]::FromBase64String("{content}")
+    #               [System.IO.File]::WriteAllBytes("{remote_path}", $bytes)
+    #               """
+    #               session.run_ps(ps_script)
 
-          # --- Move to IIS wwwroot ---
-          session.run_ps(f"Copy-Item {remote_temp}\\* {remote_wwwroot} -Recurse -Force")
+    #       # --- Move to IIS wwwroot ---
+    #       session.run_ps(f"Copy-Item {remote_temp}\\* {remote_wwwroot} -Recurse -Force")
 
-          # --- Restart IIS ---
-          r = session.run_ps("iisreset")
-          print(r.std_out.decode(), r.std_err.decode())
-          EOF
+    #       # --- Restart IIS ---
+    #       r = session.run_ps("iisreset")
+    #       print(r.std_out.decode(), r.std_err.decode())
+    #       EOF
 
 
 
