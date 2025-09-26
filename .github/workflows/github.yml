@@ -57,57 +57,50 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
+    - name: Install Python and pywinrm
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip
+        pip3 install pywinrm
+        
     - name: Deploy artifact to IIS via WinRM
       env:
-          WINRM_HOST: ${{ secrets.IIS_SERVER }}
-          WINRM_USER: ${{ secrets.IIS_USER }}
-          WINRM_PASS: ${{ secrets.IIS_PASSWORD }}
+        WINRM_HOST: ${{ secrets.IIS_SERVER }}
+        WINRM_USER: ${{ secrets.IIS_USER }}
+        WINRM_PASS: ${{ secrets.IIS_PASSWORD }}
       run: |
-          python3 <<EOF
-          import winrm
-          import base64
+        python3 <<EOF
+        import winrm
+        import base64
+        
+        remote_zip = r'C:\Temp\CircleApp.zip'
+        local_zip = 'CircleAppPackage\CircleApp.zip'
+        
+        # Read file and encode as base64
+        with open(local_zip, 'rb') as f:
+            b64 = base64.b64encode(f.read()).decode('utf-8')
+        
+        # Connect to remote server
+        s = winrm.Session(
+            '${{ secrets.IIS_SERVER }}',
+            auth=('${{ secrets.IIS_USER }}', '${{ secrets.IIS_PASSWORD }}'),
+            transport='ntlm'
+        )
+        
+        # Write base64 to remote file and decode
+        ps_script = f"""
+        Set-Content -Path '{remote_zip}.b64' -Value '{b64}'
+        $b64 = Get-Content '{remote_zip}.b64' -Raw
+        [IO.File]::WriteAllBytes('{remote_zip}', [Convert]::FromBase64String($b64))
+        Remove-Item '{remote_zip}.b64'
+        Expand-Archive -Path '{remote_zip}' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force
+        Restart-WebAppPool -Name 'DefaultAppPool'
+        """
+        result = s.run_ps(ps_script)
+        print(result.std_out.decode())
+        print(result.std_err.decode())
+        EOF
 
-          # Read artifact as bytes
-          with open('CircleAppPackage/CircleApp.zip', 'rb') as f:
-              data = f.read()
-
-          # Connect to IIS with NTLM auth (for HTTPS, add port: 'server:5986' and transport='ntlm' or 'ssl')
-          session = winrm.Session('${{ secrets.IIS_SERVER }}',
-                                  auth=('${{ secrets.IIS_USER }}', '${{ secrets.IIS_PASSWORD }}'),
-                                  transport='ntlm')
-
-          # Chunk and upload (WinRM has a 50MB file limit)
-          remote_path = r'C:\Temp\CircleApp.zip'
-          chunk_size = 1024 * 1024
-          for i in range(0, len(data), chunk_size):
-              chunk = data[i:i+chunk_size]
-              b64 = base64.b64encode(chunk).decode('utf-8')
-              cmd = f"[IO.File]::WriteAllBytes('{remote_path}', [Convert]::FromBase64String('{b64}'))"
-              if i > 0:
-                  # Append chunk
-                  cmd = f"[IO.File]::AppendAllText('{remote_path}.b64', '{b64}');"
-              else:
-                  # Overwrite for the first chunk
-                  cmd = f"[IO.File]::WriteAllText('{remote_path}.b64', '{b64}');"
-              session.run_ps(cmd)
-
-          # After all chunks, decode from base64 on server
-          ps_script = f"""
-          $b64 = Get-Content '{remote_path}.b64' -Raw
-          [IO.File]::WriteAllBytes('{remote_path}', [Convert]::FromBase64String($b64))
-          Remove-Item '{remote_path}.b64'
-          """
-          session.run_ps(ps_script)
-
-          # Unzip and deploy (change destination as needed)
-          ps_script = '''
-          Expand-Archive -Path "C:\\Temp\\CircleApp.zip" -DestinationPath "C:\\inetpub\\wwwroot\\CircleApp" -Force
-          Restart-WebAppPool -Name "DefultAppPool"
-          '''
-          result = session.run_ps(ps_script)
-          print(result.std_out.decode())
-          print(result.std_err.decode())
-          EOF
 
 
 
