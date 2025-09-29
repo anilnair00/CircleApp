@@ -52,7 +52,7 @@ jobs:
           path: CircleApp.zip
 
   deployOnDev:
-    runs-on: linux
+    runs-on: runner1
     needs: build
     # if: github.base_ref == 'master'
     steps:
