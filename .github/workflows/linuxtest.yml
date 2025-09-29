@@ -114,9 +114,10 @@ jobs:
           # sshpass -p "p@ssword@123" ssh -o StrictHostKeyChecking=no "sam@20.245.242.103" \
           # "powershell -Command '& \"C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe\" -verb:sync -source:package=\"C:\temp\CircleApp.zip\" -dest:auto,computerName=\"20.245.242.103\",userName=\"sam\",password=\"p@ssword@123\",authType=\"basic\" -allowUntrusted'"
 
-          sshpass -p "p@ssword@123" ssh -o StrictHostKeyChecking=no "sam@20.245.242.103" \
+          # imp sshpass -p "p@ssword@123" ssh -o StrictHostKeyChecking=no "sam@20.245.242.103" \
           # imp "powershell -Command \"Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\inetpub\wwwroot\CircleApp' -Force\""
-          "powershell -Command \"Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force; Import-Module WebAdministration; Stop-Website -Name 'Default Web Site'; Start-Website -Name 'Default Web Site'\""
+          # "powershell -Command \"Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force; Import-Module WebAdministration; Stop-Website -Name 'Default Web Site'; Start-Website -Name 'Default Web Site'\""
+          sshpass -p "p@ssword@123" ssh -o StrictHostKeyChecking=no "sam@$20.245.242.103" powershell -File "C:\Users\Sam\deploy.ps1"
       
           # sshpass -p "p@swword@123" ssh -o StrictHostKeyChecking=no "sam@20.245.242.103" \
           # "powershell -Command \"& 'C:\\Program Files\\IIS\\Microsoft Web Deploy V3\\msdeploy.exe' -verb:sync -source:package='C:\\temp\\CircleApp.zip' -dest:auto,computerName='20.245.242.103',userName='sam',password='p@ssword@123',authType='basic' -allowUntrusted\""
