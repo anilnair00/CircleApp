@@ -102,14 +102,32 @@ jobs:
           # iisreset /start
           # '
 
-    - name: Unzip on IIS via SSH
-      env:
-          IIS_USERNAME: "sam"
-          IIS_PASSWORD: "p@ssword@123"
-          IIS_HOST: "20.245.242.103"
-          IIS_TARGET_PATH: C:\inetpub\wwwroot\CircleApp
+      # 2. Run msdeploy.exe remotely on IIS server
+    - name: Deploy using msdeploy on IIS server
       run: |
-          sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:\temp\CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"        
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -command "
+          & 'C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe' -verb:sync `
+              -source:package='C:\temp\CircleApp.zip' `
+              -dest:auto,computerName='20.245.242.103',userName='sam',password='p@ssword@123',authType='basic' `
+              -allowUntrusted
+ 
+    #   # 2. Run msdeploy.exe remotely on IIS server
+    # - name: Deploy using msdeploy on IIS server
+    #   run: |
+    #       ssh -i ~/.ssh/id_rsa deployuser@<server-ip> powershell -command "
+    #       & 'C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe' -verb:sync `
+    #           -source:package='C:\temp\CircleApp.zip' `
+    #           -dest:auto,computerName='localhost',userName='<siteuser>',password='<sitepassword>',authType='basic' `
+    #           -allowUntrusted
+         
+    # - name: Unzip on IIS via SSH
+    #   env:
+    #       IIS_USERNAME: "sam"
+    #       IIS_PASSWORD: "p@ssword@123"
+    #       IIS_HOST: "20.245.242.103"
+    #       IIS_TARGET_PATH: C:\inetpub\wwwroot\CircleApp
+    #   run: |
+    #       sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:\temp\CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"        
  ###########################################################################################
 
     # - name: Copy artifact to Windows Server
