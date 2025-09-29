@@ -66,14 +66,15 @@ jobs:
 
     - name: Copy files to IIS server over SSH
       run: |
-        scp -r CircleAppPackage/CircleApp.zip sam@20.245.242.103:"C:/temp/"
+        scp -i ~/.ssh/id_rsa CircleAppPackage/CircleApp.zip sam@20.245.242.103:"C:/temp/"
 
     - name: Deploy on IIS using PowerShell over SSH
       run: |
-        ssh ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }} 'powershell -Command "
+        ssh -i ~/.ssh/id_rsa ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }} 'powershell -Command "
           Expand-Archive -Path C:/Temp/CircleApp.zip -DestinationPath C:/inetpub/wwwroot/CircleApp -Force;
-          Restart-WebAppPool -Name \"DefaultAppPool\"
-        "'
+          iisreset
+          # Restart-WebAppPool -Name \"DefaultAppPool\"
+        "
 
 ################################################################################
 
