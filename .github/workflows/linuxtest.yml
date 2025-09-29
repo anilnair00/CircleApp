@@ -105,12 +105,12 @@ jobs:
       # 2. Run msdeploy.exe remotely on IIS server
     - name: Deploy using msdeploy on IIS server
       run: |
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -command "
-          & 'C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe' -verb:sync `
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -command "`
+            & 'C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe' -verb:sync `
               -source:package='C:\temp\CircleApp.zip' `
               -dest:auto,computerName='20.245.242.103',userName='sam',password='p@ssword@123',authType='basic' `
               -allowUntrusted
- 
+          "
     #   # 2. Run msdeploy.exe remotely on IIS server
     # - name: Deploy using msdeploy on IIS server
     #   run: |
