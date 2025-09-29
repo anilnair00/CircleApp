@@ -14,6 +14,11 @@ env:
   # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
   ArtifactName: "TEST"
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -57,24 +62,40 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    - name: Set up SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.IIS_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.IIS_SSH_HOST }} >> ~/.ssh/known_hosts
+    - name: Login to Azure Subscription
+      uses: azure/login@v1
+      with:
+       client-id: ${{ secrets.DEV_AZURE_CLIENT_ID }}
+       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+       allow-no-subscriptions: true
 
-    - name: Copy files to IIS server over SSH
+      # 3. Upload artifact into VM's C:\temp
+    - name: Upload artifact to VM
       run: |
-        scp -i ~/.ssh/id_rsa CircleAppPackage/CircleApp.zip sam@20.245.242.103:"C:/temp/"
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+            
+    # - name: Set up SSH key
+    #   run: |
+    #     mkdir -p ~/.ssh
+    #     echo "${{ secrets.IIS_SSH_KEY }}" > ~/.ssh/id_rsa
+    #     chmod 600 ~/.ssh/id_rsa
+    #     ssh-keyscan -H ${{ secrets.IIS_SSH_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Deploy on IIS using PowerShell over SSH
-      run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }} 'powershell -Command "
-          Expand-Archive -Path C:/Temp/CircleApp.zip -DestinationPath C:/inetpub/wwwroot/CircleApp -Force;
-          iisreset
-          # Restart-WebAppPool -Name \"DefaultAppPool\"
-        "
+    # - name: Copy files to IIS server over SSH
+    #   run: |
+    #     scp -i ~/.ssh/id_rsa CircleAppPackage/CircleApp.zip sam@20.245.242.103:"C:/temp/"
+
+    # - name: Deploy on IIS using PowerShell over SSH
+    #   run: |
+    #     ssh -i ~/.ssh/id_rsa ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }} 'powershell -Command "
+    #       Expand-Archive -Path C:/Temp/CircleApp.zip -DestinationPath C:/inetpub/wwwroot/CircleApp -Force;
+    #       iisreset
+    #       # Restart-WebAppPool -Name \"DefaultAppPool\"
+    #     "
 
 ################################################################################
 
