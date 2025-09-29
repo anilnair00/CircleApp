@@ -110,7 +110,7 @@ jobs:
           IIS_TARGET_PATH: C:\inetpub\wwwroot\CircleApp
       run: |
           # sshpass -p "$IIS_PASSWORD" ssh -o StrictHostKeyChecking=no "$IIS_USERNAME@$IIS_HOST" powershell -Command "Expand-Archive -Path 'C:\temp\CircleApp.zip' -DestinationPath '$env:IIS_TARGET_PATH' -Force"      
-          sshpass -p "p@ssword@123" ssh -o StrictHostKeyChecking=no sam@20.245,242.103 'powershell -Command "& ''C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe'' -verb:sync -source:package=''C:\temp\CircleApp.zip'' -dest:auto,computerName=''20.245.242.103'',userName='sam',password='p@ssword@123',authType=''basic'' -allowUntrusted"'
+          sshpass -p "p@ssword@123" ssh -o StrictHostKeyChecking=no sam@20.245,242.103 'powershell -Command "& ''C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe'' -verb:sync -source:package=''C:\temp\CircleApp.zip'' -dest:auto,computerName='20.245.242.103',userName='sam',password='p@ssword@123',authType=''basic'' -allowUntrusted"'
 
  ###########################################################################################
 
