@@ -89,61 +89,9 @@ jobs:
             --name CircleApp_${{ github.run_id }}.zip \
             # --overwrite
 
-name: Build and Deploy to IIS
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build-deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1. Checkout code
-      - uses: actions/checkout@v4
-
-      # 2. Azure Login using OIDC (no secrets)
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-oidc: true
-
-      # 3. Build backend
-      - name: Build Backend (.NET)
-        run: dotnet publish ./Functions -c Release -o output
-
-      # 4. Build frontend
-      - name: Build Frontend (Angular)
-        run: |
-          cd Frontend
-          npm ci
-          npm run build --prod
-          mv dist ../Front
-
-      # 5. Package everything
-      - name: Package
-        run: |
-          mkdir -p SSET
-          mv Front SSET/
-          mv output SSET/Functions
-          zip -r SSET.zip SSET
-
-      # 6. Upload artifact to Azure Storage
-      - name: Upload to Blob Storage
-        run: |
-          az storage blob upload \
-            --account-name mystorageacct \
-            --container-name artifacts \
-            --name SSET_${{ github.run_id }}.zip \
-            --file SSET.zip
-
       # 7. Trigger IIS Deployment
-      - name: Deploy to IIS VM
-        run: |
+    - name: Deploy to IIS VM
+      run: |
           az vm run-command invoke \
             --resource-group testvm_group \
             --name testvm \
