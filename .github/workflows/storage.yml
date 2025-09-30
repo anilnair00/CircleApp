@@ -79,13 +79,13 @@ jobs:
        allow-no-subscriptions: true
 
       # 3. Upload artifact into VM's C:\temp
-    - name: Upload artifact to VM
-      run: |
-          az vm run-command invoke \
-            --resource-group testvm_group \
-            --name testvm \
-            --command-id RunPowerShellScript \
-            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+    # - name: Upload artifact to VM
+    #   run: |
+    #       az vm run-command invoke \
+    #         --resource-group testvm_group \
+    #         --name testvm \
+    #         --command-id RunPowerShellScript \
+    #         --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
 
         # 3. Upload artifact into VM's C:\temp
     - name: Upload artifact to VM
