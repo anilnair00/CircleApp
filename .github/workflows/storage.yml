@@ -1,4 +1,4 @@
-name: github teting 
+name: storage teting 
 
 on:
   workflow_dispatch:
