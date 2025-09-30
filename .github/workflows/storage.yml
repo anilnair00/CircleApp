@@ -48,7 +48,7 @@ jobs:
         run: |
             mkdir -p ${{ github.workspace }}/CircleApp/CircleApp
             cd ${{ github.workspace }}/temp/CircleApp
-            zip -r ${{ github.workspace }}/CircleApp/CircleApp/CircleApp.zip .
+            zip -r ${{ github.workspace }}/../CircleApp/CircleApp/CircleApp.zip .
           
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
