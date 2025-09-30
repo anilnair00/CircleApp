@@ -96,7 +96,7 @@ jobs:
             --resource-group testvm_group \
             --name testvm \
             --command-id RunPowerShellScript \
-            --scripts deploy.ps1 \
+            --scripts ./deploy.ps1 \
             --parameters "RunId=${{ github.run_id }}"
 
       # 4. Deploy into VM (download + extract + restart IIS)
