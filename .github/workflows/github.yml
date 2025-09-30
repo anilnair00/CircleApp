@@ -81,6 +81,35 @@ jobs:
             --name testvm \
             --command-id RunPowerShellScript \
             --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+
+        # 3. Upload artifact into VM's C:\temp
+    - name: Upload artifact to VM
+      run: |
+          # First, copy the artifact to a location accessible by the VM
+          # Since we're on a self-hosted runner, we can access the workspace directly
+          
+          # Create temp directory on VM
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+          
+          # Remove old artifact if exists
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "Remove-Item -Path 'C:\\temp\\CircleApp.zip' -Force -ErrorAction SilentlyContinue"
+            
+          # Copy the artifact from the GitHub runner to the VM using Azure file copy
+          # Note: This requires the VM to have proper network access and the service principal to have Storage permissions
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "Copy-Item 'CircleAppPackage/CircleApp.zip' -Destination 'C:\\temp\\'"
+
             
     # - name: Set up SSH key
     #   run: |
