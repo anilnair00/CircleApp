@@ -37,7 +37,7 @@ jobs:
         run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
         
       - name: Publish project
-        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ${{ github.workspace }}/temp/CircleApp
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ${{ github.workspace }}/CircleApp
 
       # - name: Create deployment zip
       #   run: |
@@ -46,15 +46,14 @@ jobs:
       #     cd ..
       - name: Zip Publish Artifact
         run: |
-            mkdir -p ${{ github.workspace }}/CircleApp/CircleApp
-            cd ${{ github.workspace }}/temp/CircleApp
-            zip -r ${{ github.workspace }}/../../CircleApp/CircleApp/CircleApp.zip .
+            cd ${{ github.workspace }}/CirleApp
+            zip -r ../CircleApp.zip .
           
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: CircleApp
-          path: ${{ github.workspace }}/CircleApp
+          path: ${{ github.workspace }}/CircleApp.zip
 
   deployOnDev:
     runs-on: runner1
