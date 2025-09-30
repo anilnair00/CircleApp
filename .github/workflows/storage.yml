@@ -37,25 +37,25 @@ jobs:
         run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
         
       - name: Publish project
-        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ${{ github.workspace }}/temp/publish
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
 
-      # - name: Create deployment zip
-      #   run: |
-      #     cd ./publish
-      #     zip -r ../CircleApp.zip .
-      #     cd ..
-      - name: Zip Publish Artifact
+      - name: Create deployment zip
         run: |
-          mkdir -p ${{ github.workspace }}/CircleApp/Publish
-          cd ${{ github.workspace }}/temp/publish
-          zip -r ${{ github.workspace }}/CircleApp/Publish/publish.zip .
-          # zip -r ../myapp.zip .
+          cd ./publish
+          zip -r ../CircleApp.zip .
+          cd ..
+      # - name: Zip Publish Artifact
+      #   run: |
+      #     mkdir -p ${{ github.workspace }}/CircleApp/Publish
+      #     cd ${{ github.workspace }}/temp/publish
+      #     zip -r ${{ github.workspace }}/CircleApp/Publish/publish.zip .
+      #     # zip -r ../myapp.zip .
           
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CircleApp
-          path: ${{ github.workspace }}/CircleApp
+          name: CircleAppPackage
+          path: CircleApp.zip
 
   deployOnDev:
     runs-on: runner1
@@ -65,8 +65,8 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-          name: CircleApp
-          path: .CircleApp
+          name: CircleAppPackage
+          path: CircleAppPackage
 
     - name: Install Azure CLI
       run: |
@@ -85,7 +85,7 @@ jobs:
           az storage blob upload \
             --account-name testvmgroupb7e2  \
             --container-name artifacts \
-            --file .CircleApp/CircleApp.zip \
+            --file CircleAppPackage/CircleApp.zip \
             --name CircleApp.zip \
             --overwrite
 
