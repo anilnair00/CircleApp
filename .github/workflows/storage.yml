@@ -96,6 +96,6 @@ jobs:
             --resource-group testvm_group \
             --name testvm \
             --command-id RunPowerShellScript \
-            --scripts "Invoke-WebRequest -Uri 'https://testvmgroupb7e2.blob.core.windows.net/artifacts/CircleApp.zip' -OutFile 'C:\\temp\\CircleApp.zip'; Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force; Import-Module WebAdministration; Restart-WebAppPool -Name 'DefaultAppPool'"
+            --scripts "Invoke-WebRequest -Uri 'https://testvmgroupb7e2.blob.core.windows.net/artifacts/CircleApp.zip' -OutFile 'C:\\temp\\'; Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force; Import-Module WebAdministration; Restart-WebAppPool -Name 'DefaultAppPool'"
             --command-id RunPowerShellScript \
             --scripts "Copy-Item 'CircleAppPackage/CircleApp.zip' -Destination 'C:\\deploy\\'"
