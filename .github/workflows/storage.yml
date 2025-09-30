@@ -1,0 +1,116 @@
+name: github teting 
+
+on:
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  # push:
+  #   branches:
+  #    - master
+  #    - develop
+  #    - release
+
+env:
+  # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
+  ArtifactName: "TEST"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+        
+      - name: Restore dependencies
+        run: dotnet restore CircleApp.sln
+
+      - name: Build
+        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+        
+      - name: Publish project
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ${{ github.workspace }}/temp/publish
+
+      # - name: Create deployment zip
+      #   run: |
+      #     cd ./publish
+      #     zip -r ../CircleApp.zip .
+      #     cd ..
+      - name: Zip Publish Artifact
+        run: |
+            mkdir -p ${{ github.workspace }}/CircleApp/CircleApp
+            cd ${{ github.workspace }}/temp/publish
+            zip -r ${{ github.workspace }}/CircleApp/CircleApp/publish.zip .
+          
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CircleApp
+          path: ${{ github.workspace }}/CircleApp
+
+  deployOnDev:
+    runs-on: runner1
+    needs: build
+    # if: github.base_ref == 'master'
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleApp
+          path: ${{ github.workspace }}/CircleApp
+
+    - name: Install Azure CLI
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        
+    - name: Login to Azure Subscription
+      uses: azure/login@v1
+      with:
+       client-id: ${{ secrets.DEV_AZURE_CLIENT_ID }}
+       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+       allow-no-subscriptions: true
+
+      # 3. Upload artifact into VM's C:\temp
+    - name: Upload artifact to VM
+      run: |
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+
+        # 3. Upload artifact into VM's C:\temp
+    - name: Upload artifact to VM
+      run: |
+          # First, copy the artifact to a location accessible by the VM
+          # Since we're on a self-hosted runner, we can access the workspace directly
+          
+          # Create temp directory on VM
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+          
+          # Remove old artifact if exists
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "Remove-Item -Path 'C:\\temp\\CircleApp.zip' -Force -ErrorAction SilentlyContinue"
+            
+          # Copy the artifact from the GitHub runner to the VM using Azure file copy
+          # Note: This requires the VM to have proper network access and the service principal to have Storage permissions
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "Copy-Item '${{ github.workspace }}/OneProfile' -Destination 'C:\\temp\\'"
