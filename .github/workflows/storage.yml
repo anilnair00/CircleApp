@@ -79,39 +79,23 @@ jobs:
        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
        allow-no-subscriptions: true
 
-      # 3. Upload artifact into VM's C:\temp
-    # - name: Upload artifact to VM
+      # 3. Upload artifact to Azure Storage so the VM can fetch it
+    - name: Upload to Azure Storage
+      run: |
+          az storage blob upload \
+            --account-name testvmgroupb7e2  \
+            --container-name artifacts \
+            --file .CircleApp/CircleApp.zip \
+            --name CircleApp.zip \
+            --overwrite
+
+      # 4. Deploy into VM (download + extract + restart IIS)
+    # - name: Deploy on IIS VM
     #   run: |
     #       az vm run-command invoke \
-    #         --resource-group testvm_group \
-    #         --name testvm \
+    #         --resource-group MY_RG \
+    #         --name MY_IIS_VM \
     #         --command-id RunPowerShellScript \
-    #         --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
-
-        # 3. Upload artifact into VM's C:\temp
-    - name: Upload artifact to VM
-      run: |
-          # First, copy the artifact to a location accessible by the VM
-          # Since we're on a self-hosted runner, we can access the workspace directly
-          
-          # Create temp directory on VM
-          az vm run-command invoke \
-            --resource-group testvm_group \
-            --name testvm \
-            --command-id RunPowerShellScript \
-            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
-          
-          # Remove old artifact if exists
-          az vm run-command invoke \
-            --resource-group testvm_group \
-            --name testvm \
-            --command-id RunPowerShellScript \
-            --scripts "Remove-Item -Path 'C:\\temp\\CircleApp.zip' -Force -ErrorAction SilentlyContinue"
-            
-          # Copy the artifact from the GitHub runner to the VM using Azure file copy
-          # Note: This requires the VM to have proper network access and the service principal to have Storage permissions
-          az vm run-command invoke \
-            --resource-group testvm_group \
-            --name testvm \
-            --command-id RunPowerShellScript \
+    #         --scripts "Invoke-WebRequest -Uri 'https://<YOUR_STORAGE_ACCOUNT>.blob.core.windows.net/artifacts/CircleApp.zip' -OutFile 'C:\\temp\\CircleApp.zip'; Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force; Import-Module WebAdministration; Restart-WebAppPool -Name 'CircleAppPool'"
+    #         --command-id RunPowerShellScript \
             --scripts "Copy-Item '${{ github.workspace }}/OneProfile' -Destination 'C:\\temp\\'"
