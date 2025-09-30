@@ -98,4 +98,4 @@ jobs:
     #         --command-id RunPowerShellScript \
     #         --scripts "Invoke-WebRequest -Uri 'https://<YOUR_STORAGE_ACCOUNT>.blob.core.windows.net/artifacts/CircleApp.zip' -OutFile 'C:\\temp\\CircleApp.zip'; Expand-Archive -Path 'C:\\temp\\CircleApp.zip' -DestinationPath 'C:\\inetpub\\wwwroot\\CircleApp' -Force; Import-Module WebAdministration; Restart-WebAppPool -Name 'CircleAppPool'"
     #         --command-id RunPowerShellScript \
-            --scripts "Copy-Item '${{ github.workspace }}/OneProfile' -Destination 'C:\\temp\\'"
+            # --scripts "Copy-Item '${{ github.workspace }}/OneProfile' -Destination 'C:\\temp\\'"
