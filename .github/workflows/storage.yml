@@ -101,8 +101,8 @@ jobs:
             $storageAccount = "testvmgroupb7e2"
             $container = "artifacts"
             $blobName = "CircleApp_$RunId.zip"
-            # $destFile = "C:\temp\CircleApp.zip"
-            $destFile = "CircleApp_${{ github.run_id }}.zip"
+            $destFile = "C:\temp\CircleApp.zip"
+            # $destFile = "CircleApp_${{ github.run_id }}.zip"
             $destPath = "C:\inetpub\wwwroot\CircleApp"
     
             az login --identity | Out-Null
