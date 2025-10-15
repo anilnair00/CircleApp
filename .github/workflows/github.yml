@@ -1,0 +1,187 @@
+name: github teting 
+
+on:
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  # push:
+  #   branches:
+  #    - master
+  #    - develop
+  #    - release
+
+env:
+  # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
+  ArtifactName: "TEST"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+        
+      - name: Restore dependencies
+        run: dotnet restore CircleApp.sln
+
+      - name: Build
+        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+        
+      - name: Publish project
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
+
+      - name: Create deployment zip
+        run: |
+          cd ./publish
+          zip -r ../CircleApp.zip .
+          cd ..
+  
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CircleAppPackage
+          path: CircleApp.zip
+
+  deployOnDev:
+    runs-on: runner1
+    needs: build
+    # if: github.base_ref == 'master'
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleAppPackage
+          path: CircleAppPackage
+
+    - name: Install Azure CLI
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        
+    - name: Login to Azure Subscription
+      uses: azure/login@v1
+      with:
+       client-id: ${{ secrets.DEV_AZURE_CLIENT_ID }}
+       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+       allow-no-subscriptions: true
+
+      # 3. Upload artifact into VM's C:\temp
+    - name: Upload artifact to VM
+      run: |
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+        # 3. Upload artifact into VM's C:\temp
+    - name: Upload artifact to VM
+      run: |
+          # First, copy the artifact to a location accessible by the VM
+          # Since we're on a self-hosted runner, we can access the workspace directly
+          
+          # Create temp directory on VM
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "New-Item -Path 'C:\\temp\\' -ItemType Directory -Force"
+          
+          # Remove old artifact if exists
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "Remove-Item -Path 'C:\\temp\\CircleApp.zip' -Force -ErrorAction SilentlyContinue"
+            
+          # Copy the artifact from the GitHub runner to the VM using Azure file copy
+          # Note: This requires the VM to have proper network access and the service principal to have Storage permissions
+          az vm run-command invoke \
+            --resource-group testvm_group \
+            --name testvm \
+            --command-id RunPowerShellScript \
+            --scripts "Copy-Item 'CircleAppPackage/CircleApp.zip' -Destination 'C:\\temp\\'"
+            
+    # - name: Set up SSH key
+    #   run: |
+    #     mkdir -p ~/.ssh
+    #     echo "${{ secrets.IIS_SSH_KEY }}" > ~/.ssh/id_rsa
+    #     chmod 600 ~/.ssh/id_rsa
+    #     ssh-keyscan -H ${{ secrets.IIS_SSH_HOST }} >> ~/.ssh/known_hosts
+
+    # - name: Copy files to IIS server over SSH
+    #   run: |
+    #     scp -i ~/.ssh/id_rsa CircleAppPackage/CircleApp.zip sam@20.245.242.103:"C:/temp/"
+
+    # - name: Deploy on IIS using PowerShell over SSH
+    #   run: |
+    #     ssh -i ~/.ssh/id_rsa ${{ secrets.IIS_SSH_USER }}@${{ secrets.IIS_SSH_HOST }} 'powershell -Command "
+    #       Expand-Archive -Path C:/Temp/CircleApp.zip -DestinationPath C:/inetpub/wwwroot/CircleApp -Force;
+    #       iisreset
+    #       # Restart-WebAppPool -Name \"DefaultAppPool\"
+    #     "
+
+################################################################################
+
+    # - name: Setup Python and Install WinRM client
+    #   run: |
+    #       python3 -m pip install --upgrade pip
+    #       pip3 install pywinrm requests-ntlm
+          
+    # - name: Deploy via WinRM
+    #   run: |
+    #       python3 - <<'EOF'
+    #       import os, winrm, base64
+
+    #       # --- Config ---
+    #       win_host = "${{ secrets.IIS_HOST }}"      # IIS public IP or DNS
+    #       win_user = "${{ secrets.IIS_USER }}"      # Windows user
+    #       win_pass = "${{ secrets.IIS_PASSWORD }}"      # Windows password
+    #       local_folder = "CircleAppPackage/CircleApp.zip"                # Build output folder on runner
+    #       remote_temp = "C:\\temp\\"          # Temp staging folder on IIS
+    #       remote_wwwroot = "C:\\inetpub\\wwwroot\\CircleApp"
+
+    #       # --- Connect to WinRM ---
+    #       session = winrm.Session(
+    #           f'http://{win_host}:5985/wsman',
+    #           auth=(win_user, win_pass),
+    #           transport='ntlm'   # Use NTLM for Windows domain/local accounts
+    #       )
+
+    #       # --- Ensure temp folder exists ---
+    #       session.run_ps(f"New-Item -Path {remote_temp} -ItemType Directory -Force")
+
+    #       # --- Upload files one by one ---
+    #       for root, dirs, files in os.walk(local_folder):
+    #           for file in files:
+    #               local_path = os.path.join(root, file)
+    #               rel_path = os.path.relpath(local_path, local_folder)
+    #               remote_path = os.path.join(remote_temp, rel_path).replace("/", "\\")
+    #               remote_dir = os.path.dirname(remote_path)
+
+    #               # ensure remote dir exists
+    #               session.run_ps(f"New-Item -Path '{remote_dir}' -ItemType Directory -Force")
+
+    #               # upload file content (base64 encode to avoid corruption)
+    #               with open(local_path, "rb") as f:
+    #                   content = base64.b64encode(f.read()).decode("utf-8")
+    #               ps_script = f"""
+    #               $bytes = [System.Convert]::FromBase64String("{content}")
+    #               [System.IO.File]::WriteAllBytes("{remote_path}", $bytes)
+    #               """
+    #               session.run_ps(ps_script)
+
+    #       # --- Move to IIS wwwroot ---
+    #       session.run_ps(f"Copy-Item {remote_temp}\\* {remote_wwwroot} -Recurse -Force")
+
+    #       # --- Restart IIS ---
+    #       r = session.run_ps("iisreset")
+    #       print(r.std_out.decode(), r.std_err.decode())
+    #       EOF
