@@ -103,16 +103,17 @@ jobs:
             $destFile = "C:\temp\CircleApp.zip"
             # $destFile = "CircleApp_${{ github.run_id }}.zip"
             $destPath = "C:\inetpub\wwwroot\CircleApp"
-    
+            Write-Output "Authenticating with Managed Identity..."
             az login --identity | Out-Null
-    
+            Write-Output "Downloading file..."
             az storage blob download `
               --account-name $storageAccount `
               --container-name $container `
               --name $blobName `
               --file $destFile `
-              --auth-mode login `
-              --overwrite
+              --auth-mode login
+              # --overwrite
+            Write-Output "Download Finished!"
     
             if (Test-Path $destPath) { Remove-Item -Recurse -Force $destPath }
             Expand-Archive -Path $destFile -DestinationPath $destPath -Force
