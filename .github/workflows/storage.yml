@@ -87,16 +87,16 @@ jobs:
             --container-name artifacts \
             --file CircleAppPackage/CircleApp.zip \
             --name CircleApp_${{ github.run_id }}.zip \
-            --overwrite
+            # --overwrite
     - name: Deploy to IIS VM
       run: |
         az vm run-command invoke \
           --resource-group testvm_group \
           --name testvm \
           --command-id RunPowerShellScript \
-          --scripts "
+          --scripts '
             param([string]$RunId)
-            Write-Host \"RunId: $RunId\"  # Debug
+    
             $storageAccount = "testvmgroupb7e2"
             $container = "artifacts"
             $blobName = "CircleApp_$RunId.zip"
@@ -105,8 +105,7 @@ jobs:
             $destPath = "C:\inetpub\wwwroot\CircleApp"
     
             az login --identity | Out-Null
-            Write-Host \"Downloading \$blobName...\"
-
+    
             az storage blob download `
               --account-name $storageAccount `
               --container-name $container `
@@ -114,13 +113,13 @@ jobs:
               --file $destFile `
               --auth-mode login `
               --overwrite
-            Write-Host \"Unzipping package...\"
+    
             if (Test-Path $destPath) { Remove-Item -Recurse -Force $destPath }
             Expand-Archive -Path $destFile -DestinationPath $destPath -Force
-           Write-Host \"Restarting App Pool...\"
+    
             Import-Module WebAdministration
             Restart-WebAppPool "DefaultAppPool"
-          " \
+          ' \
           --parameters "RunId=${{ github.run_id }}"
       # 7. Trigger IIS Deployment
     # - name: Deploy to IIS VM
