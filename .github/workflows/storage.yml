@@ -87,7 +87,7 @@ jobs:
             --container-name artifacts \
             --file CircleAppPackage/CircleApp.zip \
             --name CircleApp_${{ github.run_id }}.zip \
-            # --overwrite
+            --overwrite
     - name: Deploy to IIS VM
       run: |
         az vm run-command invoke \
