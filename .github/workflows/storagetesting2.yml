@@ -1,0 +1,114 @@
+name: storage teting 
+
+on:
+  workflow_dispatch:
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  # push:
+  #   branches:
+  #    - master
+  #    - develop
+  #    - release
+
+env:
+  # AZURE_WEBAPP_NAME: "app-munson-api-eastus-dev-001"
+  ArtifactName: "TEST"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+        
+      - name: Restore dependencies
+        run: dotnet restore CircleApp.sln
+
+      - name: Build
+        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+        
+      - name: Publish project
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
+
+      - name: Create deployment zip
+        run: |
+          cd ./publish
+          zip -r ../CircleApp.zip .
+          cd ..
+      # - name: Zip Publish Artifact
+      #   run: |
+      #     mkdir -p ${{ github.workspace }}/CircleApp/Publish
+      #     cd ${{ github.workspace }}/temp/publish
+      #     zip -r ${{ github.workspace }}/CircleApp/Publish/publish.zip .
+      #     # zip -r ../myapp.zip .
+          
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CircleAppPackage
+          path: CircleApp.zip
+
+  deployOnDev:
+    runs-on: runner1
+    needs: build
+    # if: github.base_ref == 'master'
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleAppPackage
+          path: CircleAppPackage
+
+    - name: Install Azure CLI
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        
+    - name: Login to Azure Subscription
+      uses: azure/login@v1
+      with:
+       client-id: ${{ secrets.DEV_AZURE_CLIENT_ID }}
+       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+       allow-no-subscriptions: true
+
+      # 3. Upload artifact to Azure Storage so the VM can fetch it
+    - name: Upload to Azure Storage
+      run: |
+          az storage blob upload \
+            --account-name testvmgroupb7e2  \
+            --container-name artifacts \
+            --file CircleAppPackage/CircleApp.zip \
+            --name CircleApp_${{ github.run_id }}.zip \
+            --overwrite
+            
+    - name: Deploy to IIS Server via WinRM
+      uses: microsoft/PowerShell@v1
+      with:
+          inlineScript: |
+            $user = "${{ secrets.WINRM_USERNAME }}"
+            $pass = ConvertTo-SecureString "${{ secrets.WINRM_PASSWORD }}" -AsPlainText -Force
+            $cred = New-Object System.Management.Automation.PSCredential ($user, $pass)
+
+            Invoke-Command -ComputerName ${{ secrets.WINRM_HOST }} -Credential $cred -ScriptBlock {
+              
+              $artifactUrl = "${{ secrets.AZURE_STORAGE_SAS_URL }}"
+              $downloadPath = "C:\temp\CircleApp.zip"
+              $webRoot = "C:\inetpub\wwwroot"
+
+              Write-Host "Downloading artifact from Azure Storage..."
+              azcopy copy $artifactUrl $downloadPath --overwrite=true
+
+              Write-Host "Extracting to IIS folder..."
+              Expand-Archive -LiteralPath $downloadPath -DestinationPath $webRoot -Force
+
+              Write-Host "Restarting IIS..."
+              iisreset
+            }
