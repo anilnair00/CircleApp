@@ -100,34 +100,36 @@ jobs:
             --resource-group testvm_group \
             --name testvm \
             --command-id RunPowerShellScript \
-            --scripts "
-              param([string]\$RunId);
+            --scripts @- << 'EOF'
+              param([string]\$RunId)
+              $storageAccount = "testvmgroupb7e2"
+              $container = "Artifacts"
+              $blobName = "CircleApp_\$RunId.zip"
+              $destFile = "C:\\temp\\CircleApp.zip"
+              $destPath = "C:\\inetpub\\wwwroot\\CircleApp"
 
-              \$storageAccount = 'testvmgroupb7e2';
-              \$container = 'Artifacts';
-              \$blobName = 'CircleApp_\$RunId.zip';
-              \$destFile = 'C:\\temp\\CircleApp.zip';
-              \$destPath = 'C:\\inetpub\\wwwroot\\CircleApp';
+              Write-Output "Authenticating with Managed Identity..."
+              az login --identity | Out-Null
 
-              Write-Output 'Authenticating with Managed Identity...';
-              az login --identity | Out-Null;
+              Write-Output "Downloading artifact from Azure Storage..."
+              az storage blob download '
+              --account-name $storageAccount '
+              --container-name \$container '
+              --name \$blobName '
+              --file \$destFile '
+              --auth-mode login
+              
+             Write-Output "Download Finished!"
+              if (Test-Path $destPath) { Remove-Item -Recurse -Force $destPath }
+              Expand-Archive -Path $destFile -DestinationPath $destPath -Force
+              
+              Import-Module WebAdministration
+              Restart-WebAppPool "DefaultAppPool"
+              
+              EOF \
+                      --parameters RunId=${{ github.run_id }}
 
-              Write-Output 'Downloading artifact from Azure Storage...';
-              az storage blob download --account-name \$storageAccount --container-name \$container --name \$blobName --file \$destFile --auth-mode login;
 
-              Write-Output 'Cleaning existing IIS folder...';
-              if (Test-Path \$destPath) { Remove-Item -Recurse -Force \$destPath };
-
-              Write-Output 'Extracting artifact to IIS webroot...';
-              Expand-Archive -Path \$destFile -DestinationPath \$destPath -Force;
-
-              Write-Output 'Restarting IIS App Pool...';
-              Import-Module WebAdministration;
-              Restart-WebAppPool 'DefaultAppPool';
-
-              Write-Output 'Deployment completed successfully!';
-            " \
-            --parameters "RunId=${{ github.run_id }}"
 
 ##### use below###########################3
           
