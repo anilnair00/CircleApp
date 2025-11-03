@@ -72,32 +72,33 @@ jobs:
     #   run: |
     #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-    - name: Install Azure CLI 2.77.0
+    - name: Install Azure CLI 2.77.0 (Pinned Version)
       run: |
+        # Remove existing Azure CLI if present
         sudo apt-get remove -y azure-cli || true
     
-        curl -L "https://packages.microsoft.com/ubuntu/22.04/prod/pool/main/a/azure-cli/azure-cli_2.77.0-1~jammy_all.deb" -o azure-cli.deb
+        # Add Microsoft package source if not already added
+        curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
     
-        # Verify download file size > 5MB (prevents broken install)
-        ls -lh azure-cli.deb
-        if [ $(stat -c%s azure-cli.deb) -lt 5000000 ]; then
-          echo "❌ Download failed — file is too small."
-          cat azure-cli.deb
-          exit 1
-        fi
+        sudo apt-get update
     
-        sudo dpkg -i azure-cli.deb || sudo apt-get install -f -y
+        # Install the specific version
+        sudo apt-get install -y azure-cli=2.77.0-1~$(lsb_release -cs)
+    
+        # Hold the version (prevents auto-update)
+        sudo apt-mark hold azure-cli
     
         az version
 
 
         
-    # - name: Login to Azure Subscription
-    #   uses: azure/login@v1
-    #   with:
-    #    client-id: ${{ secrets.DEV_AZURE_CLIENT_ID }}
-    #    tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-    #    allow-no-subscriptions: true
+    - name: Login to Azure Subscription
+      uses: azure/login@v1
+      with:
+       client-id: ${{ secrets.DEV_AZURE_CLIENT_ID }}
+       tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+       allow-no-subscriptions: true
 
       # 3. Upload artifact to Azure Storage so the VM can fetch it
     - name: Upload to Azure Storage
