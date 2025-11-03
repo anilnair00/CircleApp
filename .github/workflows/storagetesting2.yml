@@ -88,11 +88,31 @@ jobs:
             --file CircleAppPackage/CircleApp.zip \
             --name CircleApp_${{ github.run_id }}.zip \
             --overwrite
+    - name: Install PowerShell
+      run: |
+        # Update package list
+        sudo apt-get update
+        
+        # Install pre-requisites
+        sudo apt-get install -y wget apt-transport-https software-properties-common
+        
+        # Download Microsoft repository GPG keys
+        wget -q "https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb" -O packages-microsoft-prod.deb
+        
+        # Register Microsoft repository
+        sudo dpkg -i packages-microsoft-prod.deb
+        
+        # Update after adding repo
+        sudo apt-get update
+        
+        # Install PowerShell
+        sudo apt-get install -y powershell
+        
+        # Start PowerShell
+        pwsh
             
     - name: Deploy to IIS Server via WinRM
-      uses: microsoft/PowerShell@v1
-      with:
-          inlineScript: |
+      run: |
             $user = "${{ secrets.WINRM_USERNAME }}"
             $pass = ConvertTo-SecureString "${{ secrets.WINRM_PASSWORD }}" -AsPlainText -Force
             $cred = New-Object System.Management.Automation.PSCredential ($user, $pass)
