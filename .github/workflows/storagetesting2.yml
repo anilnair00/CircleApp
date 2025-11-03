@@ -119,7 +119,7 @@ jobs:
         pwsh -Command "
           sshpass -p '${{ secrets.WINRM_PASSWORD }}' \
           ssh -o StrictHostKeyChecking=no ${{ secrets.WINRM_USER }}@${{ secrets.WINRM_HOST }} `
-            'powershell -ExecutionPolicy Bypass -File C:\deploy\deploy.ps1'"
+            'powershell -File C:\deploy\deploy.ps1'"
       shell: bash
             
     # - name: Deploy to IIS Server via WinRM
