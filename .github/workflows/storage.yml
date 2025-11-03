@@ -72,19 +72,11 @@ jobs:
     #   run: |
     #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-    - name: Deploy using Azure CLI 2.77.0
-      uses: azure/CLI@v1
-      with:
-        azcliversion: 2.77.0
-        inlineScript: |
-          echo "Logging in..."
-          az login --service-principal \
-            --username ${{ secrets.DEV_AZURE_CLIENT_ID }} \
-            --password eDP8Q~-bYBJrcSESpQDABZ_YGpxF~f~b-seMWb-j \
-            --tenant ${{ secrets.AZURE_TENANT_ID }}
-
-          echo "Verify CLI version:"
-          az version
+    - name: Install Azure CLI 2.77.0
+      run: |
+        curl -L https://packages.microsoft.com/ubuntu/22.04/prod/pool/main/a/azure-cli/azure-cli_2.77.0-1~jammy_all.deb -o azure-cli.deb
+        sudo dpkg -i azure-cli.deb || sudo apt --fix-broken install -y
+        az version
 
         
     # - name: Login to Azure Subscription
