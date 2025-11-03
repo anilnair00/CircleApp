@@ -90,7 +90,7 @@ jobs:
       run: |
           sudo apt-get update
           sudo apt-get install -y sshpass
-          sshpass -p -O '${{ secrets.IIS_PASSWORD }}' \
+          sshpass -p '${{ secrets.IIS_PASSWORD }}' \
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
           sam@20.245.242.103:C:/Temp/
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
