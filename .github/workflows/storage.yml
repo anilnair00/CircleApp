@@ -74,9 +74,22 @@ jobs:
 
     - name: Install Azure CLI 2.77.0
       run: |
-        curl -L https://packages.microsoft.com/ubuntu/22.04/prod/pool/main/a/azure-cli/azure-cli_2.77.0-1~jammy_all.deb -o azure-cli.deb
-        sudo dpkg -i azure-cli.deb || sudo apt --fix-broken install -y
+        sudo apt-get remove -y azure-cli || true
+    
+        curl -L "https://packages.microsoft.com/ubuntu/22.04/prod/pool/main/a/azure-cli/azure-cli_2.77.0-1~jammy_all.deb" -o azure-cli.deb
+    
+        # Verify download file size > 5MB (prevents broken install)
+        ls -lh azure-cli.deb
+        if [ $(stat -c%s azure-cli.deb) -lt 5000000 ]; then
+          echo "❌ Download failed — file is too small."
+          cat azure-cli.deb
+          exit 1
+        fi
+    
+        sudo dpkg -i azure-cli.deb || sudo apt-get install -f -y
+    
         az version
+
 
         
     # - name: Login to Azure Subscription
