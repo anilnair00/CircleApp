@@ -110,26 +110,37 @@ jobs:
         
         # Start PowerShell
         pwsh
-            
-    - name: Deploy to IIS Server via WinRM
-      shell: pwsh
+        
+    - name: Deploy to IIS via SSH
       run: |
-            $user = "${{ secrets.WINRM_USERNAME }}"
-            $pass = ConvertTo-SecureString "${{ secrets.WINRM_PASSWORD }}" -AsPlainText -Force
-            $cred = New-Object System.Management.Automation.PSCredential ($user, $pass)
+        sudo apt-get update
+        sudo apt-get install -y sshpass
+    
+        pwsh -Command "
+          sshpass -p '${{ secrets.WINRM_PASSWORD }}' \
+          ssh -o StrictHostKeyChecking=no ${{ secrets.WINRM_USER }}@${{ secrets.WINRM_HOST }} `
+            'powershell -ExecutionPolicy Bypass -File C:\deploy\deploy.ps1'"
+      shell: bash
+            
+    # - name: Deploy to IIS Server via WinRM
+    #   shell: pwsh
+    #   run: |
+    #         $user = "${{ secrets.WINRM_USERNAME }}"
+    #         $pass = ConvertTo-SecureString "${{ secrets.WINRM_PASSWORD }}" -AsPlainText -Force
+    #         $cred = New-Object System.Management.Automation.PSCredential ($user, $pass)
 
-            Invoke-Command -ComputerName ${{ secrets.WINRM_HOST }} -Credential $cred -ScriptBlock {
+    #         Invoke-Command -ComputerName ${{ secrets.WINRM_HOST }} -Credential $cred -ScriptBlock {
               
-              $artifactUrl = "${{ secrets.AZURE_STORAGE_SAS_URL }}"
-              $downloadPath = "C:\temp\CircleApp_${{ github.run_id }}.zip"
-              $webRoot = "C:\inetpub\wwwroot"
+    #           $artifactUrl = "${{ secrets.AZURE_STORAGE_SAS_URL }}"
+    #           $downloadPath = "C:\temp\CircleApp_${{ github.run_id }}.zip"
+    #           $webRoot = "C:\inetpub\wwwroot"
 
-              Write-Host "Downloading artifact from Azure Storage..."
-              azcopy copy $artifactUrl $downloadPath --overwrite=true
+    #           Write-Host "Downloading artifact from Azure Storage..."
+    #           azcopy copy $artifactUrl $downloadPath --overwrite=true
 
-              Write-Host "Extracting to IIS folder..."
-              Expand-Archive -LiteralPath $downloadPath -DestinationPath $webRoot -Force
+    #           Write-Host "Extracting to IIS folder..."
+    #           Expand-Archive -LiteralPath $downloadPath -DestinationPath $webRoot -Force
 
-              Write-Host "Restarting IIS..."
-              iisreset
-            }
+    #           Write-Host "Restarting IIS..."
+    #           iisreset
+    #         }
