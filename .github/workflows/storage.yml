@@ -68,29 +68,9 @@ jobs:
           name: CircleAppPackage
           path: CircleAppPackage
 
-    # - name: Install Azure CLI
-    #   run: |
-    #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-    - name: Install Azure CLI 2.77.0 on Ubuntu 24.04 (Noble)
+    - name: Install Azure CLI
       run: |
-        sudo apt-get remove -y azure-cli || true
-    
-        # Add Microsoft package signing key
-        curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
-    
-        # Add Jammy (22.04) repo (works on Noble)
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
-    
-        sudo apt-get update
-    
-        # Install the specific version (2.77.0)
-        sudo apt-get install -y azure-cli=2.77.0-1~jammy
-    
-        # Prevent automatic upgrades
-        sudo apt-mark hold azure-cli
-    
-        az version
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
     
     - name: Login to Azure Subscription
       uses: azure/login@v1
@@ -108,7 +88,44 @@ jobs:
             --file CircleAppPackage/CircleApp.zip \
             --name CircleApp_${{ github.run_id }}.zip \
             --overwrite
-
+            
+##### use below###########################
+          
+    - name: Deploy to IIS VM
+      run: |
+        az vm run-command invoke \
+          --resource-group testvm_group \
+          --name testvm \
+          --command-id RunPowerShellScript \
+          --scripts '
+            param([string]$RunId)
+    
+            $storageAccount = "testvmgroupb7e2"
+            $container = "Artifacts"
+            $blobName = "CircleApp_$RunId.zip"
+            $destFile = "C:\temp\CircleApp.zip"
+            # $destFile = "CircleApp_${{ github.run_id }}.zip"
+            $destPath = "C:\inetpub\wwwroot\CircleApp"
+            Write-Output "Authenticating with Managed Identity..."
+            az login --identity | Out-Null
+            Write-Output "Downloading file..."
+            az storage blob download `
+              --account-name $storageAccount `
+              --container-name $container `
+              --name $blobName `
+              --file $destFile `
+              --auth-mode login
+              # --overwrite
+            Write-Output "Download Finished!"
+    
+            if (Test-Path $destPath) { Remove-Item -Recurse -Force $destPath }
+            Expand-Archive -Path $destFile -DestinationPath $destPath -Force
+    
+            Import-Module WebAdministration
+            Restart-WebAppPool "DefaultAppPool"
+          ' \
+          --parameters "RunId=${{ github.run_id }}"
+          
     # - name: Deploy to IIS VM
     #   run: |          
     #             az vm run-command invoke \
@@ -158,44 +175,6 @@ jobs:
     #           EOF \
     #                   --parameters RunId=${{ github.run_id }}
 
-
-
-##### use below###########################3
-          
-    - name: Deploy to IIS VM
-      run: |
-        az vm run-command invoke \
-          --resource-group testvm_group \
-          --name testvm \
-          --command-id RunPowerShellScript \
-          --scripts '
-            param([string]$RunId)
-    
-            $storageAccount = "testvmgroupb7e2"
-            $container = "Artifacts"
-            $blobName = "CircleApp_$RunId.zip"
-            $destFile = "C:\temp\CircleApp.zip"
-            # $destFile = "CircleApp_${{ github.run_id }}.zip"
-            $destPath = "C:\inetpub\wwwroot\CircleApp"
-            Write-Output "Authenticating with Managed Identity..."
-            az login --identity | Out-Null
-            Write-Output "Downloading file..."
-            az storage blob download `
-              --account-name $storageAccount `
-              --container-name $container `
-              --name $blobName `
-              --file $destFile `
-              --auth-mode login
-              # --overwrite
-            Write-Output "Download Finished!"
-    
-            if (Test-Path $destPath) { Remove-Item -Recurse -Force $destPath }
-            Expand-Archive -Path $destFile -DestinationPath $destPath -Force
-    
-            Import-Module WebAdministration
-            Restart-WebAppPool "DefaultAppPool"
-          ' \
-          --parameters "RunId=${{ github.run_id }}"
           
       # 7. Trigger IIS Deployment
     # - name: Deploy to IIS VM
