@@ -112,6 +112,7 @@ jobs:
         pwsh
             
     - name: Deploy to IIS Server via WinRM
+      shell: pwsh
       run: |
             $user = "${{ secrets.WINRM_USERNAME }}"
             $pass = ConvertTo-SecureString "${{ secrets.WINRM_PASSWORD }}" -AsPlainText -Force
