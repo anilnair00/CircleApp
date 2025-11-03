@@ -1,4 +1,4 @@
-name: storage teting 
+name: 2 storage teting 
 
 on:
   workflow_dispatch:
@@ -100,7 +100,7 @@ jobs:
             Invoke-Command -ComputerName ${{ secrets.WINRM_HOST }} -Credential $cred -ScriptBlock {
               
               $artifactUrl = "${{ secrets.AZURE_STORAGE_SAS_URL }}"
-              $downloadPath = "C:\temp\CircleApp.zip"
+              $downloadPath = "C:\temp\CircleApp_${{ github.run_id }}.zip"
               $webRoot = "C:\inetpub\wwwroot"
 
               Write-Host "Downloading artifact from Azure Storage..."
