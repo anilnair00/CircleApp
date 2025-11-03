@@ -98,7 +98,7 @@ jobs:
             param([string]$RunId)
     
             $storageAccount = "testvmgroupb7e2"
-            $container = "artifacts"
+            $container = "Artifacts"
             $blobName = "CircleApp_$RunId.zip"
             $destFile = "C:\temp\CircleApp.zip"
             # $destFile = "CircleApp_${{ github.run_id }}.zip"
