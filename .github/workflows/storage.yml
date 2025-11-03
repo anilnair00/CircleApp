@@ -72,27 +72,26 @@ jobs:
     #   run: |
     #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-    - name: Install Azure CLI 2.77.0 (Pinned Version)
+    - name: Install Azure CLI 2.77.0 on Ubuntu 24.04 (Noble)
       run: |
-        # Remove existing Azure CLI if present
         sudo apt-get remove -y azure-cli || true
     
-        # Add Microsoft package source if not already added
+        # Add Microsoft package signing key
         curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/microsoft.gpg > /dev/null
-        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
+    
+        # Add Jammy (22.04) repo (works on Noble)
+        echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/22.04/prod jammy main" | sudo tee /etc/apt/sources.list.d/azure-cli.list
     
         sudo apt-get update
     
-        # Install the specific version
-        sudo apt-get install -y azure-cli=2.77.0-1~$(lsb_release -cs)
+        # Install the specific version (2.77.0)
+        sudo apt-get install -y azure-cli=2.77.0-1~jammy
     
-        # Hold the version (prevents auto-update)
+        # Prevent automatic upgrades
         sudo apt-mark hold azure-cli
     
         az version
-
-
-        
+    
     - name: Login to Azure Subscription
       uses: azure/login@v1
       with:
