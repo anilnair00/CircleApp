@@ -71,7 +71,7 @@ jobs:
     - name: Install Azure CLI
       run: |
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-    
+        
     - name: Login to Azure Subscription
       uses: azure/login@v1
       with:
@@ -87,10 +87,7 @@ jobs:
             --container-name artifacts \
             --file CircleAppPackage/CircleApp.zip \
             --name CircleApp_${{ github.run_id }}.zip \
-            --overwrite
-            
-##### use below###########################
-          
+            # --overwrite
     - name: Deploy to IIS VM
       run: |
         az vm run-command invoke \
@@ -101,7 +98,7 @@ jobs:
             param([string]$RunId)
     
             $storageAccount = "testvmgroupb7e2"
-            $container = "Artifacts"
+            $container = "artifacts"
             $blobName = "CircleApp_$RunId.zip"
             $destFile = "C:\temp\CircleApp.zip"
             # $destFile = "CircleApp_${{ github.run_id }}.zip"
@@ -125,57 +122,6 @@ jobs:
             Restart-WebAppPool "DefaultAppPool"
           ' \
           --parameters "RunId=${{ github.run_id }}"
-          
-    # - name: Deploy to IIS VM
-    #   run: |          
-    #             az vm run-command invoke \
-    #               --resource-group testvm_group \
-    #               --name testvm \
-    #               --command-id RunPowerShellScript \
-    #               --scripts @"deploy.ps1" \
-    #               --parameters RunId=${{ github.run_id }}
-            
-    # - name: Deploy to IIS VM
-    #   uses: azure/CLI@v1
-    #   with:
-    #     azcliversion: latest
-    #     inlineScript: |
-    #       az login --service-principal --username  ${{ secrets.DEV_AZURE_CLIENT_ID }} --password eDP8Q~-bYBJrcSESpQDABZ_YGpxF~f~b-seMWb-j  --tenant ${{ secrets.AZURE_TENANT_ID }}
-    #       echo "Starting deployment..."
-    #       az vm run-command invoke \
-    #         --resource-group testvm_group \
-    #         --name testvm \
-    #         --command-id RunPowerShellScript \
-    #         --scripts @- << 'EOF'
-    #           param([string]\$RunId)
-    #           $storageAccount = "testvmgroupb7e2"
-    #           $container = "Artifacts"
-    #           $blobName = "CircleApp_\$RunId.zip"
-    #           $destFile = "C:\\temp\\CircleApp.zip"
-    #           $destPath = "C:\\inetpub\\wwwroot\\CircleApp"
-
-    #           Write-Output "Authenticating with Managed Identity..."
-    #           az login --identity | Out-Null
-
-    #           Write-Output "Downloading artifact from Azure Storage..."
-    #           az storage blob download '
-    #           --account-name $storageAccount '
-    #           --container-name \$container '
-    #           --name \$blobName '
-    #           --file \$destFile '
-    #           --auth-mode login
-              
-    #          Write-Output "Download Finished!"
-    #           if (Test-Path $destPath) { Remove-Item -Recurse -Force $destPath }
-    #           Expand-Archive -Path $destFile -DestinationPath $destPath -Force
-              
-    #           Import-Module WebAdministration
-    #           Restart-WebAppPool "DefaultAppPool"
-              
-    #           EOF \
-    #                   --parameters RunId=${{ github.run_id }}
-
-          
       # 7. Trigger IIS Deployment
     # - name: Deploy to IIS VM
     #   run: |
