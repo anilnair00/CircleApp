@@ -87,7 +87,7 @@ jobs:
             --container-name artifacts \
             --file CircleAppPackage/CircleApp.zip \
             --name CircleApp_${{ github.run_id }}.zip \
-            # --overwrite
+            --overwrite
     - name: Deploy to IIS VM
       run: |
         az vm run-command invoke \
@@ -100,8 +100,8 @@ jobs:
             $storageAccount = "testvmgroupb7e2"
             $container = "artifacts"
             $blobName = "CircleApp_$RunId.zip"
-            $destFile = "C:\temp\CircleApp.zip"
-            # $destFile = "CircleApp_${{ github.run_id }}.zip"
+            # $destFile = "C:\temp\CircleApp.zip"
+            $destFile = "C:\temp\CircleApp_${{ github.run_id }}.zip"
             $destPath = "C:\inetpub\wwwroot\CircleApp"
             Write-Output "Authenticating with Managed Identity..."
             az login --identity | Out-Null
