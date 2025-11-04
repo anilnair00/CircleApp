@@ -111,16 +111,26 @@ jobs:
         # Start PowerShell
         pwsh
         
-    - name: Deploy to IIS via SSH
+    - name: Deploy to IIS VM
       run: |
-        sudo apt-get update
-        sudo apt-get install -y sshpass
+        az vm run-command invoke \
+          --resource-group testvm_group \
+          --name testvm \
+          --command-id RunPowerShellScript \
+          --scripts "@scripts/deploy.ps1" \
+          --parameters "RunId=${{ github.run_id }}"
+
+        
+    # - name: Deploy to IIS via SSH
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install -y sshpass
     
-        pwsh -Command "
-          sshpass -p '${{ secrets.WINRM_PASSWORD }}' \
-          ssh -o StrictHostKeyChecking=no ${{ secrets.WINRM_USER }}@${{ secrets.WINRM_HOST }} `
-            'powershell -File C:\deploy\deploy.ps1'"
-      shell: bash
+    #     pwsh -Command "
+    #       sshpass -p '${{ secrets.WINRM_PASSWORD }}' \
+    #       ssh -o StrictHostKeyChecking=no ${{ secrets.WINRM_USER }}@${{ secrets.WINRM_HOST }} `
+    #         'powershell -File C:\deploy\deploy.ps1'"
+    #   shell: bash
             
     # - name: Deploy to IIS Server via WinRM
     #   shell: pwsh
