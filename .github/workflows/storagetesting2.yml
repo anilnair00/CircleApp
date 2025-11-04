@@ -112,16 +112,13 @@ jobs:
     #     # Start PowerShell
     #     pwsh
 
-    - name: Verify deploy.ps1 location
-      run: ls -R ${{ github.workspace }}
-
     - name: Deploy to IIS VM
       run: |
         az vm run-command invoke \
           --resource-group testvm_group \
           --name testvm \
           --command-id RunPowerShellScript \
-          --scripts "@${{ github.workspace }}/deploy.ps1" \
+          --scripts "@scripts/deploy.ps1" \
           --parameters "RunId=${{ github.run_id }}"
 
         
