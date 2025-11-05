@@ -1,4 +1,4 @@
-name: 2 storage teting 
+name: full end to end storage teting 
 
 on:
   workflow_dispatch:
@@ -166,6 +166,16 @@ jobs:
                 --overwrite | Tee-Object $logFile -Append
           
               Write-Output "=== Deployment Finished ===" | Tee-Object $logFile -Append
+              Write-Output "Deleting deployment artifact from Blob Storage..." | Tee-Object $logFile -Append
+              
+            # 5️⃣ Delete Zip File from Blob Storage
+            az storage blob delete `
+                --account-name $storageAccount `
+                --container-name $container `
+                --name $blobName `
+                --auth-mode login | Tee-Object $logFile -Append
+
+            Write-Output "Artifact deleted successfully!" | Tee-Object $logFile -Append
             ' \
             --parameters "RunId=${{ github.run_id }}"
             
