@@ -106,76 +106,49 @@ jobs:
               $blobName = "CircleApp_$RunId.zip"
               $destFile = "C:\temp\CircleApp_$RunId.zip"
               $sitePath = "C:\inetpub\wwwroot\CircleApp"
-              $backupPath = "C:\inetpub\wwwroot\Backup\CircleApp_$((Get-Date -Format 'yyyyMMdd_HHmmss'))"
-              $logFile = "C:\temp\deploy_log_$RunId.txt"
           
-              # Enable logging
-              Write-Output "=== Deployment Started: $RunId ===" | Tee-Object $logFile -Append
-          
-              Write-Output "Authenticating using Managed Identity..." | Tee-Object $logFile -Append
+              Write-Output "Authenticating using Managed Identity..."
               az login --identity | Out-Null
-          
-              # 1️⃣ Backup Existing Site
-              if (Test-Path $sitePath) {
-                  Write-Output "Backing up current site to $backupPath" | Tee-Object $logFile -Append
-                  New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
-                  Copy-Item -Recurse -Force $sitePath\* $backupPath | Tee-Object $logFile -Append
-              } else {
-                  Write-Output "Site path not found, skipping backup." | Tee-Object $logFile -Append
-              }
-          
-              # 2️⃣ Download Artifact
-              Write-Output "Downloading build artifact $blobName..." | Tee-Object $logFile -Append
+              
+              # 1️⃣  Download Artifact
+              Write-Output "Downloading build artifact $blobName..."
               az storage blob download `
                 --account-name $storageAccount `
                 --container-name $container `
                 --name $blobName `
                 --file $destFile `
                 --auth-mode login `
-                --overwrite | Tee-Object $logFile -Append
+                --overwrite
+                
+              Write-Output "Download Completed!"
           
-              Write-Output "Download Completed!" | Tee-Object $logFile -Append
-          
-              # 3️⃣ Stop IIS Gracefully
+              #  Stop IIS Gracefully
               Import-Module WebAdministration
-              Write-Output "Stopping site & app pool..." | Tee-Object $logFile -Append
+              Write-Output "Stopping site & app pool..."
               Stop-WebAppPool "DefaultAppPool"
               Stop-Website "Default Web Site"
           
               # Replace Files
-              Write-Output "Replacing site files..." | Tee-Object $logFile -Append
+              Write-Output "Replacing site files..."
               if (Test-Path $sitePath) { Remove-Item -Recurse -Force $sitePath }
-              Expand-Archive -Path $destFile -DestinationPath $sitePath -Force | Tee-Object $logFile -Append
+              Expand-Archive -Path $destFile -DestinationPath $sitePath -Force
           
-              # 4️⃣ Start IIS
-              Write-Output "Starting site & app pool..." | Tee-Object $logFile -Append
+              #  Start IIS
+              Write-Output "Starting site & app pool..."
               Start-WebAppPool "DefaultAppPool"
               Start-Website "Default Web Site"
           
-              Write-Output "Deployment completed successfully!" | Tee-Object $logFile -Append
-          
-              # 5️⃣ Upload Deployment Log to Blob Storage
-              Write-Output "Uploading log to blob storage..." | Tee-Object $logFile -Append
-              $logBlobName = "logs/deploy_log_$RunId.txt"
-              az storage blob upload `
-                --account-name $storageAccount `
-                --container-name $container `
-                --name $logBlobName `
-                --file $logFile `
-                --auth-mode login `
-                --overwrite | Tee-Object $logFile -Append
-          
-              Write-Output "=== Deployment Finished ===" | Tee-Object $logFile -Append
-              Write-Output "Deleting deployment artifact from Blob Storage..." | Tee-Object $logFile -Append
+              Write-Output "Deployment completed successfully!"
               
-            # 5️⃣ Delete Zip File from Blob Storage
+            # 3️⃣ Delete Artifacts zip file from Blob Storage
+            Write-Output "Deleting deployment artifact from Blob Storage..."
             az storage blob delete `
                 --account-name $storageAccount `
                 --container-name $container `
                 --name $blobName `
-                --auth-mode login | Tee-Object $logFile -Append
+                --auth-mode login
 
-            Write-Output "Artifact deleted successfully!" | Tee-Object $logFile -Append
+            Write-Output "Artifact deleted successfully!"
             ' \
             --parameters "RunId=${{ github.run_id }}"
             
