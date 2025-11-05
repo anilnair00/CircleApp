@@ -92,7 +92,7 @@ jobs:
           sudo apt-get install -y sshpass
           sshpass -p '${{ secrets.IIS_PASSWORD }}' \
           scp -o StrictHostKeyChecking=no CircleAppPackage/CircleApp.zip \
-          sam@20.245.242.103:C:/Temp/
+          sam@20.245.242.103:/c:/Temp/
           # ${{ secrets.IIS_USER }}@${{ secrets.IIS_SERVER }}:C:/Temp/
           # sshpass -p ${{ secrets.IIS_PASSWORD }} \
           # ssh -o StrictHostKeyChecking=no sam@20.245.242.103 powershell -Command '
