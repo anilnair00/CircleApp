@@ -47,7 +47,7 @@ jobs:
           path: CircleApp.zip
 
   deployOnDev:
-    runs-on: runner1
+    runs-on: ubuntu-latest
     needs: build
     # if: github.base_ref == 'master'
     steps:
