@@ -46,7 +46,7 @@ jobs:
 
     - name: Azure DevOps Login
       env:
-        AZURE_DEVOPS_EXT_PAT: "BdYI1rVYA1prsrjpKetLkQg89iiTp3ZasTHk6Qt5h26Kl5Nkj2zcJQQJ99BKACAAAAAAAAAAAAASAZDO4DdC"
+        AZURE_DEVOPS_EXT_PAT: BdYI1rVYA1prsrjpKetLkQg89iiTp3ZasTHk6Qt5h26Kl5Nkj2zcJQQJ99BKACAAAAAAAAAAAAASAZDO4DdC
       run: |
         echo "$AZURE_DEVOPS_EXT_PAT" | az devops login --organization "https://dev.azure.com/practice990/"
 
