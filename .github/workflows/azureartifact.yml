@@ -11,29 +11,29 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
           dotnet-version: '9.0.x'
         
-      - name: Restore dependencies
-        run: dotnet restore CircleApp.sln
+    - name: Restore dependencies
+      run: dotnet restore CircleApp.sln
 
-      - name: Build
-        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+    - name: Build
+      run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
         
-      - name: Publish project
-        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
+    - name: Publish project
+      run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
 
-      - name: Create deployment zip
-        run: |
-          cd ./publish
-          zip -r ../CircleApp.zip .
-          cd ..
+    - name: Create deployment zip
+      run: |
+        cd ./publish
+        zip -r ../CircleApp.zip .
+        cd ..
   
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
           name: CircleAppPackage
           path: CircleApp.zip
 
