@@ -1,0 +1,82 @@
+name: Publish Universal Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+        
+      - name: Restore dependencies
+        run: dotnet restore CircleApp.sln
+
+      - name: Build
+        run: dotnet build CircleApp/CircleApp.csproj --configuration Release --no-restore
+        
+      - name: Publish project
+        run: dotnet publish CircleApp/CircleApp.csproj --configuration Release --output ./publish
+
+      - name: Create deployment zip
+        run: |
+          cd ./publish
+          zip -r ../CircleApp.zip .
+          cd ..
+  
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CircleAppPackage
+          path: CircleApp.zip
+
+    # Install Azure CLI + DevOps extension
+    - name: Install Azure CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y azure-cli
+        az extension add --name azure-devops
+
+    - name: Azure DevOps Login
+      env:
+        AZURE_DEVOPS_EXT_PAT: "BdYI1rVYA1prsrjpKetLkQg89iiTp3ZasTHk6Qt5h26Kl5Nkj2zcJQQJ99BKACAAAAAAAAAAAAASAZDO4DdC"
+      run: |
+        echo "$AZURE_DEVOPS_EXT_PAT" | az devops login --organization "https://dev.azure.com/practice990/"
+
+        # required for ArtifactTool
+        export AZURE_DEVOPS_EXT_ARTIFACTTOOL_PATVAR=$AZURE_DEVOPS_EXT_PAT
+
+      - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+          name: CircleAppPackage
+          path: CircleAppPackage
+
+    # Prepare folder for upload
+    # Universal Packages require a FOLDER, not a .zip file directly
+    - name: Prepare artifact folder
+      run: |
+        mkdir -p upload_folder
+        cp ./CircleApp.zip upload_folder/
+
+    - name: Publish Universal Package
+      env:
+        AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
+      run: |
+        export AZURE_DEVOPS_EXT_ARTIFACTTOOL_PATVAR=$AZURE_DEVOPS_EXT_PAT
+
+        az artifacts universal publish \
+          --organization "https://dev.azure.com/practice990/" \
+          --project "test123" \
+          --scope project \
+          --feed "artifacts" \
+          --name "CircleApp" \
+          --version "1.0.0" \
+          --path "upload_folder"
