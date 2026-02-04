@@ -94,8 +94,8 @@ jobs:
     - name: Deploy to IIS VM
       run: |
           az vm run-command invoke \
-            --resource-group domain \
-            --name dc01 \
+            --resource-group tf-rg \
+            --name testvm002 \
             --command-id RunPowerShellScript \
             --scripts '
               param([string]$RunId)
