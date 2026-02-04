@@ -104,7 +104,7 @@ jobs:
               $storageAccount = "testvmgroupb7e2"
               $container = "artifacts"
               $blobName = "CircleApp_$RunId.zip"
-              $destFile = "C:\temp\CircleApp_$RunId.zip"
+              $destFile = "C:\Temp\CircleApp_$RunId.zip"
               $sitePath = "C:\inetpub\wwwroot\CircleApp"
           
               Write-Output "Authenticating using Managed Identity..."
